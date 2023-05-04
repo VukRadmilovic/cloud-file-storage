@@ -1,6 +1,4 @@
-import json
 import boto3
-from http import HTTPStatus
 
 def lambda_handler(event, context):
     name = event['name']

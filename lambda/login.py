@@ -1,6 +1,16 @@
-import json
+import uuid
 import boto3
 
+def generate_session_id():
+    """Generates a unique session ID."""
+    return str(uuid.uuid4())
+
+def store_session_info(session_id, username):
+    """Stores user session information in DynamoDB."""
+    dynamodb = boto3.resource('dynamodb')
+    table = dynamodb.Table('sessions')
+    table.put_item(Item={'session_id': session_id, 'username': username})
+    
 def lambda_handler(event, context):
     username = event['username']
     password = event['password']
@@ -15,5 +25,15 @@ def lambda_handler(event, context):
     
     if response['Item']['password'] != password:
         raise Exception("Bad request: incorrect password")
+        
+    # Store session information in database or cache
+    session_id = generate_session_id()  # Generate a unique session ID
+    store_session_info(session_id, username)  # Store session information in database or cache
     
-    return "Successful login"
+    # Return successful login response with session ID
+    response_data = {
+        "message": "Successful login",
+        "session_id": session_id
+    }
+    
+    return response_data
