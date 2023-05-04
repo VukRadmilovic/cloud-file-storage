@@ -1,5 +1,5 @@
-import uuid
 import boto3
+import uuid
 
 def generate_session_id():
     """Generates a unique session ID."""

@@ -1,0 +1,217 @@
+{
+	"info": {
+		"_postman_id": "60e36aa9-86a5-48e1-9aed-39ce60b1610e",
+		"name": "Cloud",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "25076779"
+	},
+	"item": [
+		{
+			"name": "Register",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Maja\",\r\n  \"surname\": \"Varga\",\r\n  \"birthdate\": \"2001-12-21\",\r\n  \"username\": \"dracooya23\",\r\n  \"email\": \"tiba23@mail.com\",\r\n  \"password\": \"tiba\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://wk3hhbfyhl.execute-api.eu-central-1.amazonaws.com/najbolja-pozornica-ikada/register",
+					"protocol": "https",
+					"host": [
+						"wk3hhbfyhl",
+						"execute-api",
+						"eu-central-1",
+						"amazonaws",
+						"com"
+					],
+					"path": [
+						"najbolja-pozornica-ikada",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"username\": \"dracooya23\",\r\n  \"password\": \"tiba\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://wk3hhbfyhl.execute-api.eu-central-1.amazonaws.com/najbolja-pozornica-ikada/login",
+					"protocol": "https",
+					"host": [
+						"wk3hhbfyhl",
+						"execute-api",
+						"eu-central-1",
+						"amazonaws",
+						"com"
+					],
+					"path": [
+						"najbolja-pozornica-ikada",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Generate upload URL",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"type\": \"application/pdf\",\r\n    \"size\": 13313915,\r\n    \"name\": \"mb_manual_b550m-ds3h-ac_e_1201.pdf\",\r\n    \"session_id\": \"6a7587ac-12fb-4c56-8464-fce009c11c0f\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://wk3hhbfyhl.execute-api.eu-central-1.amazonaws.com/najbolja-pozornica-ikada/upload-link",
+					"protocol": "https",
+					"host": [
+						"wk3hhbfyhl",
+						"execute-api",
+						"eu-central-1",
+						"amazonaws",
+						"com"
+					],
+					"path": [
+						"najbolja-pozornica-ikada",
+						"upload-link"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Upload via link",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "key",
+							"value": "user_data/dracooya23/mb_manual_b550m-ds3h-ac_e_1201.pdf",
+							"type": "text"
+						},
+						{
+							"key": "x-amz-algorithm",
+							"value": "AWS4-HMAC-SHA256",
+							"type": "text"
+						},
+						{
+							"key": "x-amz-credential",
+							"value": "ASIARMYMETHOXXDJSDIY/20230504/eu-central-1/s3/aws4_request",
+							"type": "text"
+						},
+						{
+							"key": "x-amz-date",
+							"value": "20230504T222726Z",
+							"type": "text"
+						},
+						{
+							"key": "x-amz-security-token",
+							"value": "IQoJb3JpZ2luX2VjEO7//////////wEaDGV1LWNlbnRyYWwtMSJIMEYCIQCQsDhrkoAlKNWyuEtA/3nfBtYLh3AF8VLPpjxedg+ZvAIhAO23e9LbfOaWVWsQkD1NJAiPYfZcKbUiiBVXC6ak6CrlKv4CCPf//////////wEQABoMMDk2MTI1MzYwNjA1Igx4paeXXpkZv0rthZYq0gLCJ+913NNcqYUJJRtJbA4TbZZxDgDVnyI/s1Wqzi0S7kXGu4VXNk/u8VdzDLQuqnpqK5BL4GnkeNXuZ6v8UfqjlMpOfgH0wfeqR5q+xR8UZ2PyrK/yHlA6knmOunRlGqi/5MRMAzaG7V0cjqQFD37S8OYMp9KUxdR8kJNQVYkqwjfLlH7kwKdH0GB2YNlAePukwkqnTC0GLu+AkB8aK9Qsys5aTjR3HxRhg0bYMM6VbTou63qSmmz8VUrfiy0G4jAfDguiZR7BtxeONYo5BU+LqOQVhfu4KdSzqXW4785mXi97gzxGtemKRFMogL30A6wNcuA3TLi9ZZ/Vlq30UUkN8TNHM1q5kPqSGSGB+FFEb2wxzl7sQvw4YHoZQiPXn1zf4GVBDQq2KRlJKeGQAkEX+0MfTiOmnl31HodOKidWMl2ClrYFIRCOr5WNBK4Wsv4rrzC+39CiBjqdAQEufsZuRTBOQEPQTzZOSunxFf96yon8E15uQCZd0/0mHPUoeqUx4xr2qpaAXD9VyjI1AqomdAZAxleg3rrkX8iXvk+YDi1gMRdb1NSHM9Y5jz7mSbvx9MI+CafupOMY6Ir3TQSlAKrWMqDsEQa4idXIIf1zacilh9WddPpoSdsaYDoBEfiwGLMw1bePulHKA5ABkT0m8bGtCcTQA1k=",
+							"type": "text"
+						},
+						{
+							"key": "policy",
+							"value": "eyJleHBpcmF0aW9uIjogIjIwMjMtMDUtMDRUMjM6Mjc6MjZaIiwgImNvbmRpdGlvbnMiOiBbeyJidWNrZXQiOiAibmFqYm9samktYnVja2V0LWlrYWRhIn0sIHsia2V5IjogInVzZXJfZGF0YS9kcmFjb295YTIzL21iX21hbnVhbF9iNTUwbS1kczNoLWFjX2VfMTIwMS5wZGYifSwgeyJ4LWFtei1hbGdvcml0aG0iOiAiQVdTNC1ITUFDLVNIQTI1NiJ9LCB7IngtYW16LWNyZWRlbnRpYWwiOiAiQVNJQVJNWU1FVEhPWFhESlNESVkvMjAyMzA1MDQvZXUtY2VudHJhbC0xL3MzL2F3czRfcmVxdWVzdCJ9LCB7IngtYW16LWRhdGUiOiAiMjAyMzA1MDRUMjIyNzI2WiJ9LCB7IngtYW16LXNlY3VyaXR5LXRva2VuIjogIklRb0piM0pwWjJsdVgyVmpFTzcvLy8vLy8vLy8vd0VhREdWMUxXTmxiblJ5WVd3dE1TSklNRVlDSVFDUXNEaHJrb0FsS05XeXVFdEEvM25mQnRZTGgzQUY4VkxQcGp4ZWRnK1p2QUloQU8yM2U5TGJmT2FXVldzUWtEMU5KQWlQWWZaY0tiVWlpQlZYQzZhazZDcmxLdjRDQ1BmLy8vLy8vLy8vL3dFUUFCb01NRGsyTVRJMU16WXdOakExSWd4NHBhZVhYcGtadjBydGhaWXEwZ0xDSis5MTNOTmNxWVVKSlJ0SmJBNFRiWlp4RGdEVm55SS9zMVdxemkwUzdrWEd1NFZYTmsvdThWZHpETFF1cW5wcUs1Qkw0R25rZU5YdVo2djhVZnFqbE1wT2ZnSDB3ZmVxUjVxK3hSOFVaMlB5cksveUhsQTZrbm1PdW5SbEdxaS81TVJNQXphRzdWMGNqcVFGRDM3UzhPWU1wOUtVeGRSOGtKTlFWWWtxd2pmTGxIN2t3S2RIMEdCMllObEFlUHVrd2txblRDMEdMdStBa0I4YUs5UXN5czVhVGpSM0h4UmhnMGJZTU02VmJUb3U2M3FTbW16OFZVcmZpeTBHNGpBZkRndWlaUjdCdHhlT05ZbzVCVStMcU9RVmhmdTRLZFN6cVhXNDc4NW1YaTk3Z3p4R3RlbUtSRk1vZ0wzMEE2d05jdUEzVExpOVpaL1ZscTMwVVVrTjhUTkhNMXE1a1BxU0dTR0IrRkZFYjJ3eHpsN3NRdnc0WUhvWlFpUFhuMXpmNEdWQkRRcTJLUmxKS2VHUUFrRVgrME1mVGlPbW5sMzFIb2RPS2lkV01sMkNscllGSVJDT3I1V05CSzRXc3Y0cnJ6QyszOUNpQmpxZEFRRXVmc1p1UlRCT1FFUFFUelpPU3VueEZmOTZ5b244RTE1dVFDWmQwLzBtSFBVb2VxVXg0eHIycXBhQVhEOVZ5akkxQXFvbWRBWkF4bGVnM3Jya1g4aVh2aytZRGkxZ01SZGIxTlNITTlZNWp6N21TYnZ4OU1JK0NhZnVwT01ZNklyM1RRU2xBS3JXTXFEc0VRYTRpZFhJSWYxemFjaWxoOVdkZFBwb1Nkc2FZRG9CRWZpd0dMTXcxYmVQdWxIS0E1QUJrVDBtOGJHdENjVFFBMWs9In1dfQ==",
+							"type": "text"
+						},
+						{
+							"key": "x-amz-signature",
+							"value": "211429b756a7cd9df1610416326ce77c23661f333864d48a662f388552dcf57b",
+							"type": "text"
+						},
+						{
+							"key": "file",
+							"type": "file",
+							"src": []
+						}
+					]
+				},
+				"url": {
+					"raw": "https://najbolji-bucket-ikada.s3.amazonaws.com/",
+					"protocol": "https",
+					"host": [
+						"najbolji-bucket-ikada",
+						"s3",
+						"amazonaws",
+						"com"
+					],
+					"path": [
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Metadata",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"file_name\": \"mb_manual_b550m-ds3h-ac_e_1201.pdf\",\r\n    \"username\": \"dracooya23\",\r\n    \"podatak2\": true,\r\n    \"metapodatak2\": 3.23\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://wk3hhbfyhl.execute-api.eu-central-1.amazonaws.com/najbolja-pozornica-ikada/metadata",
+					"protocol": "https",
+					"host": [
+						"wk3hhbfyhl",
+						"execute-api",
+						"eu-central-1",
+						"amazonaws",
+						"com"
+					],
+					"path": [
+						"najbolja-pozornica-ikada",
+						"metadata"
+					],
+					"query": [
+						{
+							"key": "file_name",
+							"value": "bata",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

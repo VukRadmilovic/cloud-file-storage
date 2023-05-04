@@ -1,5 +1,12 @@
 import boto3
 
+def isfloat(num):
+    try:
+        float(num)
+        return True
+    except ValueError:
+        return False
+        
 def lambda_handler(event, context):
     file_name = event['file_name']
     username = event['username']
@@ -12,7 +19,10 @@ def lambda_handler(event, context):
         if key in ['file_name', 'username']:
             continue
         
-        item[key] = value
+        if isfloat(value):
+            item[key] = str(value)
+        else:
+            item[key] = value
     
     dynamodb = boto3.resource('dynamodb')
     table = dynamodb.Table('metadata')
