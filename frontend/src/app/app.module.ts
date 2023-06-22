@@ -26,16 +26,21 @@ import { NgxCaptchaModule } from 'ngx-captcha';
 import {MatCardModule} from "@angular/material/card";
 import { MainPageComponent } from './main-page/main-page.component';
 import { LoginComponent } from './login/login.component';
+import {JwtModule} from "@auth0/angular-jwt";
+import { NavigationComponent } from './navigation/navigation.component';
+import {MatGridListModule} from "@angular/material/grid-list";
 
 @NgModule({
   declarations: [
     AppComponent,
     MainPageComponent,
     LoginComponent,
+    NavigationComponent,
   ],
   imports: [
     BrowserModule,
     RouterOutlet,
+    JwtModule,
     AppRoutingModule,
     BrowserAnimationsModule,
     MatTabsModule,
@@ -56,7 +61,8 @@ import { LoginComponent } from './login/login.component';
     NgxFileDropModule,
     MatCheckboxModule,
     NgxCaptchaModule,
-    MatCardModule
+    MatCardModule,
+    MatGridListModule
   ],
   providers: [    {
     provide: HTTP_INTERCEPTORS,

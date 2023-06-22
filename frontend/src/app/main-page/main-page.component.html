@@ -1,1 +1,19 @@
-<p>main-page works!</p>
+<app-navigation></app-navigation>
+<body class="width-100 height-100">
+  <div class="padding">
+    <mat-grid-list cols="5" rowHeight="7:5" class="width-100 height-100">
+          <mat-grid-tile *ngFor="let file of files;let i=index">
+            <div class="padding width-100 height-100">
+              <mat-card class="width-100 height-100 border-black clickable">
+                <div class="width-100 height-70 center-horizontal center-vertical">
+                  <img class="height-70" mat-card-image src="{{ thumbnails[i] }}" alt="{{ file.file }}">
+                </div>
+                <mat-card-content class="center-horizontal">
+                  <h5> {{file.file}} </h5>
+                </mat-card-content>
+              </mat-card>
+            </div>
+        </mat-grid-tile>
+    </mat-grid-list>
+  </div>
+</body>

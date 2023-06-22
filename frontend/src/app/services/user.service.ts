@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import {timer} from "rxjs";
 import {NotificationsService} from "./notifications.service";
 import {Router} from "@angular/router";
+import {JwtHelperService} from "@auth0/angular-jwt";
 @Injectable({
   providedIn: 'root'
 })
@@ -26,6 +27,15 @@ export class UserService {
       if(sessionStorage.getItem('user') == null) return;
       this.logout();
       this.router.navigate([''])});
+  }
+
+  public getLoggedUsername() : string {
+    const helper = new JwtHelperService();
+    const token: string | null = sessionStorage.getItem('user')
+    if(token != null) {
+      return helper.decodeToken(token)["cognito:username"];
+    }
+    return "";
   }
 
 }
