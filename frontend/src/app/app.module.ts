@@ -29,6 +29,8 @@ import { LoginComponent } from './login/login.component';
 import {JwtModule} from "@auth0/angular-jwt";
 import { NavigationComponent } from './navigation/navigation.component';
 import {MatGridListModule} from "@angular/material/grid-list";
+import {MatChipsModule} from "@angular/material/chips";
+import {MatIconModule} from "@angular/material/icon";
 
 @NgModule({
   declarations: [
@@ -62,7 +64,9 @@ import {MatGridListModule} from "@angular/material/grid-list";
     MatCheckboxModule,
     NgxCaptchaModule,
     MatCardModule,
-    MatGridListModule
+    MatGridListModule,
+    MatChipsModule,
+    MatIconModule
   ],
   providers: [    {
     provide: HTTP_INTERCEPTORS,

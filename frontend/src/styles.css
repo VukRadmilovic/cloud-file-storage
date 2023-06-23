@@ -80,6 +80,11 @@ body {
   cursor: pointer;
 }
 
+.upload-footer {
+  border-top: 1px solid grey;
+  background-color: aliceblue;
+}
+
 .flex-row{
   display: flex;
   flex-direction: row;
@@ -114,12 +119,30 @@ td {
 table {
   overflow: scroll;
 }
+
+.overflow-y-scroll {
+  overflow-y: scroll;
+}
+
 .width-20 {
   width: 20%;
 }
 
 .height-40 {
   max-height: 40%;
+}
+
+.upload-btn {
+  position: fixed;
+  bottom: 10px;
+}
+
+.width-90 {
+  width: 90%;
+}
+
+.height-20 {
+  height: 20%;
 }
 
 .width-40 {
