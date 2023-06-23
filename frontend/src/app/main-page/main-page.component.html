@@ -2,12 +2,12 @@
 <body class="width-100">
 <div class="flex-row height-100">
   <div class="padding width-50">
-    <mat-grid-list cols="4" rowHeight="7:5" class="width-100">
+    <mat-grid-list cols="3" rowHeight="7:5" class="width-100">
           <mat-grid-tile *ngFor="let file of files;let i=index">
             <div class="padding width-100 height-100">
-              <mat-card class="width-100 height-100 border-black clickable">
+              <mat-card class="width-100 height-100 border-black clickable" (click)="viewDetails(file, i)">
                 <div class="width-100 height-70 center-horizontal center-vertical">
-                  <img class="height-70" mat-card-image src="{{ thumbnails[i] }}" alt="{{ file.file }}">
+                  <img class="height-90 center-vertical" mat-card-image src="{{ thumbnails[i] }}" alt="{{ file.file }}">
                 </div>
                 <mat-card-content class="center-horizontal">
                   <h5> {{file.file}} </h5>
@@ -27,14 +27,15 @@
       <br>
       <h4>Added tags</h4>
       <mat-chip-grid #chipGrid aria-label="Added tags:" class="overflow-y-scroll center-horizontal border height-20 width-90">
-        <mat-chip *ngFor="let tag of tags"
+        <mat-basic-chip *ngFor="let tag of tags"
                   (removed)="removeTag(tag)"
+                  (click)="chipClicked(tag)"
                   class="mat-h2 font-weight-medium">
           {{tag.name}} = {{tag.value}}
           <button matChipRemove [attr.aria-label]="'Remove'">
             <mat-icon>cancel</mat-icon>
           </button>
-        </mat-chip>
+        </mat-basic-chip>
       </mat-chip-grid>
       <br>
       <div class="flex-row width-100">
@@ -59,7 +60,7 @@
         </form>
       </div>
       <br>
-      <button mat-raised-button color="primary" class="center-vertical" (click)="addTag()">Add tag</button>
+      <button mat-raised-button color="primary" class="center-vertical" (click)="addTag(false)">Add tag</button>
       <br>
       <br>
       <br>
@@ -73,5 +74,66 @@
       <br>
       </div>
     </div>
+
+
+  <div class="width-50 height-100 upload-footer stacked overflow-y-scroll" *ngIf="showFileDetails">
+    <br>
+    <b><p class="mat-headline-3">File details</p></b>
+    <img  class="width-90 center-horizontal" src = "{{selectedFileThumbnail}}" />
+    <br>
+    <br>
+    <div class="flex-row center-horizontal">
+      <h4 style="margin-right: 20px;">Upload changed file: </h4>
+      <input type="file" style="margin-right: 20px;" (change)="onFileSelected($event)">
+    </div>
+    <br>
+    <h4>Added tags</h4>
+    <mat-chip-grid #chipGrid aria-label="Added tags:" class="overflow-y-scroll center-horizontal border height-20 width-90">
+      <mat-chip *ngFor="let tag of tags"
+                (removed)="removeTag(tag)"
+                (click)="chipClicked(tag)"
+                class="mat-h2 font-weight-medium">
+        {{tag.name}} = {{tag.value}}
+        <button matChipRemove [attr.aria-label]="'Remove'">
+          <mat-icon>cancel</mat-icon>
+        </button>
+      </mat-chip>
+    </mat-chip-grid>
+    <br>
+    <div class="flex-row width-100">
+      <form [formGroup]="tagForm" class="width-100">
+        <div class="flex-row center-vertical center-horizontal width-100">
+          <mat-form-field class="width-40" style="margin-right: 2em">
+            <mat-label>Tag name</mat-label>
+            <input matInput formControlName="tagName" placeholder="Tag name" [matChipInputFor]="chipGrid">
+            <mat-error *ngIf="tagForm.controls['tagName'].hasError('required')">
+              Tag name is <strong>required</strong>
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field class="width-40">
+            <mat-label>Tag value</mat-label>
+            <input matInput formControlName="tagValue" placeholder="Tag value">
+            <mat-error *ngIf="tagForm.controls['tagValue'].hasError('required')">
+              Tag value is <strong>required</strong>
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </form>
+    </div>
+    <br>
+    <button mat-raised-button color="primary" class="center-vertical" (click)="addTag(true)">Add/Change tag</button>
+    <br>
+    <br>
+    <br>
+    <div class="width-100 flex-row center-horizontal">
+      <button mat-raised-button
+              class="center-horizontal"
+              color="primary"
+              (click)="upload()">Modify
+      </button>
+      <br>
+    </div>
+  </div>
 </div>
 </body>

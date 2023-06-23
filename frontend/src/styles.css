@@ -137,6 +137,16 @@ table {
   bottom: 10px;
 }
 
+.height-90 {
+  height: 90%;
+}
+
+.stacked {
+  z-index: 1;
+  position: absolute;
+  right: 0;
+}
+
 .width-90 {
   width: 90%;
 }

@@ -34,4 +34,8 @@ export class FilesService {
     return this.http.put<string>(baseURL + "metadata?username=" + this.userService.getLoggedUsername(), metadata);
   }
 
+  public getFileData(filePath : string) : Observable<any> {
+    return  this.http.get<any>(baseURL + "/get-file-details?username=" + this.userService.getLoggedUsername() + "&file_path=" + filePath);
+  }
+
 }

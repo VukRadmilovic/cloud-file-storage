@@ -20,6 +20,9 @@ export class MainPageComponent implements OnInit{
   uploadedFile!: File;
   enableUpload = false;
   thumbnails : string[] = [];
+  showFileDetails = true;
+  selectedFile! : FileBasicInfo;
+  selectedFileThumbnail! : string;
   constructor(private userService : UserService,
               private notificationService: NotificationsService,
               private fileService: FilesService) {}
@@ -57,17 +60,28 @@ export class MainPageComponent implements OnInit{
     this.uploadedFile = files[0];
   }
 
-  public addTag() : void {
+  public addTag(isChange: boolean) : void {
     if(this.tagForm.valid) {
         const tag : Tag = {
           name : <string>this.tagForm.controls['tagName'].value,
           value : <string>this.tagForm.controls['tagValue'].value
         }
-        if(this.checkIfTagIsAdded(tag.name)) {
+        const isAdded = this.checkIfTagIsAdded(tag.name);
+        if(isAdded && !isChange) {
           this.notificationService.createNotification("Tag with that name already created!")
           return;
         }
-        this.tags.push(tag);
+        if(isAdded && isChange) {
+          this.tags.forEach((tagIter) => {
+            if(tagIter.name == tag.name) {
+              tagIter.value = tag.value;
+              return;
+            }
+          });
+        }
+        else {
+          this.tags.push(tag);
+        }
     }
   }
 
@@ -84,11 +98,46 @@ export class MainPageComponent implements OnInit{
     }
   }
 
-  checkIfTagIsAdded(name : string) : boolean {
+  public checkIfTagIsAdded(name : string) : boolean {
     for(const tag of this.tags) {
       if(tag.name == name) return true;
     }
     return false;
+  }
+
+  public chipClicked(tag : Tag) : void {
+    this.tagForm.controls['tagName'].setValue(tag.name);
+    this.tagForm.controls['tagValue'].setValue(tag.value);
+  }
+
+  public viewDetails(file : FileBasicInfo, index: number) {
+    this.showFileDetails = true;
+    this.selectedFile = file;
+    this.selectedFileThumbnail = this.thumbnails[index];
+    this.tagForm.controls['tagValue'].setValue('');
+    this.tagForm.controls['tagName'].setValue('');
+    const file_path = this.userService.getLoggedUsername() + "/" + file.file;
+    this.fileService.getFileData(file_path).subscribe( {
+      next: response => {
+        const itemInfo = JSON.parse(response);
+        this.tags = [];
+        const hiddenProperties = ["partial_path","file_name","creation_date","last_modification_date","size","type"];
+        for (let key in itemInfo) {
+          if (Object.prototype.hasOwnProperty.call(itemInfo, key)) {
+            if(hiddenProperties.indexOf(key) <= -1) {
+              const tag : Tag = {
+                name : key,
+                value : itemInfo[key]
+              }
+              this.tags.push(tag)
+            }
+          }
+        }
+      },
+      error : err => {
+        console.log(err)
+      }
+    })
   }
 
   public upload() : void {
@@ -114,13 +163,13 @@ export class MainPageComponent implements OnInit{
                   metadata.set("size",this.uploadedFile.size);
                   metadata.set("creation_date",now);
                   metadata.set("last_modification_date",now);
-                  console.log(this.tags);
                   this.tags.forEach((tag) => {
                     metadata.set(tag.name,tag.value);
                   });
                   this.fileService.uploadMetaData(Object.fromEntries(metadata.entries())).subscribe( {
                     next: (response) => {
                         this.notificationService.createNotification(response);
+                        window.location.reload();
                     },
                     error: (error) => {
                       console.log(error);
