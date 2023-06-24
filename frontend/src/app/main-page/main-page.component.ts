@@ -20,7 +20,7 @@ export class MainPageComponent implements OnInit{
   uploadedFile!: File;
   enableUpload = false;
   thumbnails : string[] = [];
-  showFileDetails = true;
+  showFileDetails = false;
   selectedFile! : FileBasicInfo;
   selectedFileThumbnail! : string;
   constructor(private userService : UserService,
@@ -36,6 +36,7 @@ export class MainPageComponent implements OnInit{
     const token = window.location.href.split("#")[1].split("=")[1].split("&")[0];
     this.userService.login(token);
     this.fileService.getUserFiles().subscribe( result => {
+      console.log(result)
       let objects = JSON.parse(result.toString())
       this.files = objects;
       this.files.forEach((file) => {
@@ -156,6 +157,7 @@ export class MainPageComponent implements OnInit{
           const formData = this.generateFormData(uploadInfo);
           this.fileService.uploadFile(uploadInfo["url"],formData).subscribe({
             next: () => {
+
                   const now = new Date();
                   const metadata = new Map();
                   metadata.set("file_name",this.uploadedFile.name);
