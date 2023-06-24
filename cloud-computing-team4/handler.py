@@ -1,5 +1,6 @@
 import json
 import boto3
+from dateutil import parser
 
 def generate_presigned_post(object_key, expires_in):
     s3 = boto3.client('s3')
@@ -22,19 +23,19 @@ def isfloat(num):
         return False
 
 def generate_s3_url(event, context):
-    file_type = event['type']
-    file_size = event['size']
-    file_name = event['name']
-    username = event['username']
+    file_type = event['body']['type']
+    file_size = event['body']['size']
+    file_name = event['body']['name']
+    username = event['query']['username']
 
-    supported_file_types = ["audio/aac", "application/x-abiword", "image/avif", "video/x-msvideo", "image/bmp", "application/x-cdf",
+    supported_file_types = ["audio/aac", "audio/mp3", "application/x-abiword", "image/avif", "video/x-msvideo", "image/bmp", "application/x-cdf",
     "text/css","text/csv","application/msword","application/vnd.openxmlformats-officedocument.wordprocessingml.document","image/gif","text/html",
     "image/vnd.microsoft.icon","image/jpeg","application/json","audio/midi","audio/x-midi","audio/mpeg","video/mp4","video/mpeg",
     "application/vnd.oasis.opendocument.presentation","application/vnd.oasis.opendocument.spreadsheet","application/vnd.oasis.opendocument.text",
     "audio/ogg","video/ogg","audio/opus","application/ogg","image/png","application/pdf","application/vnd.ms-powerpoint",
     "application/vnd.openxmlformats-officedocument.presentationml.presentation","application/rtf","image/svg+xml","image/tiff","video/mp2t","text/plain",
     "audio/wav","audio/x-wav","audio/webm","video/webm","image/webp","application/vnd.ms-excel","application/xhtml+xml",
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet","application/xml","text/xml"]
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet","application/xml","text/xml", "image/jpg"]
 
     if(file_type not in supported_file_types):
         raise Exception("Bad request: File type is not supported!")
@@ -61,7 +62,7 @@ def send_extra_data(event, context):
     creation_date = event['creation_date']
     last_modification_date = event['last_modification_date']
     username = event['username']
-    
+
     item = {
         "partial_path" : username + "/" + file_name,
         "file_name" : file_name,
@@ -70,16 +71,16 @@ def send_extra_data(event, context):
         "creation_date" : creation_date,
         "last_modification_date" : last_modification_date
     }
-    
+
     for key, value in event.items():
         if key in ['file_name', 'username', 'type', 'size', 'creation_date', 'last_modification_date']:
             continue
-        
+
         if isfloat(value):
             item[key] = str(value)
         else:
             item[key] = value
-    
+
     dynamodb = boto3.resource('dynamodb')
     table = dynamodb.Table('s-metadata')
     table.put_item(Item=item)
@@ -87,17 +88,17 @@ def send_extra_data(event, context):
     return "Successfully uploaded a file!"
 
 def get_user_data(event, context):
-    supported_file_types = ["audio/aac","audio/mp3", "application/x-abiword", "image/avif", "video/x-msvideo", "image/bmp", "application/x-cdf",
+    supported_file_types = ["audio/aac", "audio/mp3", "application/x-abiword", "image/avif", "video/x-msvideo", "image/bmp", "application/x-cdf",
     "text/css","text/csv","application/msword","application/vnd.openxmlformats-officedocument.wordprocessingml.document","image/gif","text/html",
     "image/vnd.microsoft.icon","image/jpeg","application/json","audio/midi","audio/x-midi","audio/mpeg","video/mp4","video/mpeg",
     "application/vnd.oasis.opendocument.presentation","application/vnd.oasis.opendocument.spreadsheet","application/vnd.oasis.opendocument.text",
     "audio/ogg","video/ogg","audio/opus","application/ogg","image/png","application/pdf","application/vnd.ms-powerpoint",
     "application/vnd.openxmlformats-officedocument.presentationml.presentation","application/rtf","image/svg+xml","image/tiff","video/mp2t","text/plain",
     "audio/wav","audio/x-wav","audio/webm","video/webm","image/webp","application/vnd.ms-excel","application/xhtml+xml",
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet","application/xml","text/xml"]
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet","application/xml","text/xml", "image/jpg"]
     
-    username = event['username']
-    album = event['album']
+    username = event['query']['username']
+    album = event['query']['album']
     items = []
     s3client = boto3.client('s3')
     s3bucket = boto3.resource('s3')
@@ -137,8 +138,8 @@ def get_user_data(event, context):
     return json.dumps(items)
 
 def get_file_metadata(event, context):
-    file_path = event['file_path']
-    username = event['username']
+    file_path = event['query']['file_path']
+    username = event['query']['username']
     owner_username = file_path.split('/')[0]
     if username != owner_username:
         return {
@@ -158,4 +159,3 @@ def get_file_metadata(event, context):
     for key, value in file_info.items():
         item[key] = value['S']
     return json.dumps(item)
-    
