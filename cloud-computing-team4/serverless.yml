@@ -17,11 +17,38 @@ resources:
       Type: AWS::SES::EmailIdentity
       Properties:
         EmailIdentity: "2001vuk@gmail.com"
+    MajaIdentity:
+      Type: AWS::SES::EmailIdentity
+      Properties:
+        EmailIdentity: "maya.grudge.12@gmail.com"
     BestS3Bucket:
       Type: AWS::S3::Bucket
       Properties:
         BucketName: s-najbolji-bucket-ikada
-        AccessControl: BucketOwnerFullControl
+        OwnershipControls:
+          Rules:
+            - ObjectOwnership: ObjectWriter
+        AccessControl: PublicReadWrite
+        CorsConfiguration:
+          CorsRules:
+            - AllowedMethods:
+                - "PUT"
+                - "POST"
+                - "GET"
+                - "DELETE"
+              AllowedOrigins:
+                - "http://*"
+                - "https://*"
+                - "*"
+              AllowedHeaders:
+                - "*"
+              ExposedHeaders:
+                - "Access-Control-Allow-Origin"
+        PublicAccessBlockConfiguration:
+          BlockPublicPolicy: false
+          BlockPublicAcls: false
+          RestrictPublicBuckets: false
+          IgnorePublicAcls: false
     BestDDBTable:
       Type: AWS::DynamoDB::Table
       Properties:
@@ -103,6 +130,7 @@ resources:
 functions:
   generate-s3-url:
     handler: handler.generate_s3_url
+    role: arn:aws:iam::096125360605:role/najbolja-lambda-rola-ikada
     events:
       - http:
           path: upload-link
@@ -137,6 +165,7 @@ functions:
                 pattern: ''
   send-extra-data:
     handler: handler.send_extra_data
+    role: arn:aws:iam::096125360605:role/najbolja-lambda-rola-ikada
     events:
       - http:
           path: metadata
@@ -155,6 +184,17 @@ functions:
                 - BestUserPool
                 - Arn
           request:
+            passThrough: WHEN_NO_TEMPLATES
+            template:
+              application/json: |
+                #set($inputRoot = $input.path('$'))
+                {
+                  #foreach($key in $inputRoot.keySet())
+                    "$key": "$inputRoot.get($key)"
+                    #if($foreach.hasNext),#end
+                  #end,
+                  "username": "$input.params('username')"
+                }
             parameters:
               querystrings:
                 username: true
@@ -169,6 +209,7 @@ functions:
                 pattern: ''
   get-user-data:
     handler: handler.get_user_data
+    role: arn:aws:iam::096125360605:role/najbolja-lambda-rola-ikada
     events:
       - http:
           path: get-user-data
@@ -202,6 +243,7 @@ functions:
                 pattern: ''
   get-file-details:
     handler: handler.get_file_metadata
+    role: arn:aws:iam::096125360605:role/najbolja-lambda-rola-ikada
     events:
       - http:
           path: get-file-details
