@@ -1,0 +1,235 @@
+org: vukradmilovic
+app: cloud-computing-team4
+service: cloud-computing-team4
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: python3.9
+  stage: dev
+  region: eu-central-1
+  memorySize: 128
+  timeout: 10
+
+resources:
+  Resources:
+    VukIdentity:
+      Type: AWS::SES::EmailIdentity
+      Properties:
+        EmailIdentity: "2001vuk@gmail.com"
+    BestS3Bucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: s-najbolji-bucket-ikada
+        AccessControl: BucketOwnerFullControl
+    BestDDBTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: s-metadata
+        AttributeDefinitions:
+          - AttributeName: partial_path
+            AttributeType: S
+        KeySchema:
+          - AttributeName: partial_path
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+    BestUserPool:
+      Type: AWS::Cognito::UserPool
+      Properties:
+        UserPoolName: s-najbolji-user-pool-ikada
+        UsernameAttributes:
+          - email
+        AutoVerifiedAttributes:
+          - email
+        Policies:
+          PasswordPolicy:
+            MinimumLength: 8
+        Schema:
+          - Name: preferred_username
+            Mutable: true
+            Required: true
+          - Name: given_name
+            Mutable: true
+            Required: true
+          - Name: family_name
+            Mutable: true
+            Required: true
+          - Name: email
+            Mutable: true
+            Required: true
+          - Name: birthdate
+            Mutable: true
+            Required: true
+        VerificationMessageTemplate:
+          DefaultEmailOption: "CONFIRM_WITH_CODE"
+          EmailMessage: "Your verification code is {####}."
+          EmailSubject: "Your verification code"
+          SmsMessage: "Your verification code is {####}."
+        UsernameConfiguration:
+          CaseSensitive: false
+        EmailConfiguration:
+          EmailSendingAccount: "DEVELOPER"
+          From: "Vuk <2001vuk@gmail.com>"
+          ReplyToEmailAddress: "2001vuk@gmail.com"
+          SourceArn: "arn:aws:ses:eu-central-1:096125360605:identity/2001vuk@gmail.com"
+    BestUserPoolClient:
+      Type: AWS::Cognito::UserPoolClient
+      Properties:
+        ClientName: ${self:service}_${self:provider.stage}_client
+        UserPoolId:
+          Ref: BestUserPool
+        GenerateSecret: false
+        PreventUserExistenceErrors: "ENABLED"
+        SupportedIdentityProviders:
+          - "COGNITO"
+        CallbackURLs:
+          - "http://localhost:4200/main"   
+        AllowedOAuthFlows:
+          - "implicit"
+        AllowedOAuthFlowsUserPoolClient: true
+        AllowedOAuthScopes:
+          - "email"
+          - "openid"
+    bestuserpooldomain:
+      Type: AWS::Cognito::UserPoolDomain
+      Properties:
+        Domain: "tim4-login"
+        UserPoolId:
+          Ref: BestUserPool
+
+
+functions:
+  generate-s3-url:
+    handler: handler.generate_s3_url
+    events:
+      - http:
+          path: upload-link
+          method: post
+          integration: lambda
+          cors: true
+          authorizer:
+            name: CognitoAuthorizer
+            type: COGNITO_USER_POOLS
+            arn:
+              Fn::GetAtt: 
+                - BestUserPool
+                - Arn
+          response:
+            statusCodes:
+              200:
+                pattern: ''
+              400:
+                pattern: 'Bad request: .*'
+          request:
+            parameters:
+              querystrings:
+                username: true
+      - http:
+          path: upload-link
+          method: options
+          integration: mock
+          cors: true
+          response:
+            statusCodes:
+              200:
+                pattern: ''
+  send-extra-data:
+    handler: handler.send_extra_data
+    events:
+      - http:
+          path: metadata
+          method: put
+          integration: lambda
+          cors: true
+          response:
+            statusCodes:
+              200:
+                pattern: ''
+          authorizer:
+            name: CognitoAuthorizer
+            type: COGNITO_USER_POOLS
+            arn:
+              Fn::GetAtt: 
+                - BestUserPool
+                - Arn
+          request:
+            parameters:
+              querystrings:
+                username: true
+      - http:
+          path: metadata
+          method: options
+          integration: mock
+          cors: true
+          response:
+            statusCodes:
+              200:
+                pattern: ''
+  get-user-data:
+    handler: handler.get_user_data
+    events:
+      - http:
+          path: get-user-data
+          method: get
+          integration: lambda
+          cors: true
+          response:
+            statusCodes:
+              200:
+                pattern: ''
+          authorizer:
+            name: CognitoAuthorizer
+            type: COGNITO_USER_POOLS
+            arn:
+              Fn::GetAtt: 
+                - BestUserPool
+                - Arn
+          request:
+            parameters:
+              querystrings:
+                album: true
+                username: true
+      - http:
+          path: get-user-data
+          method: options
+          integration: mock
+          cors: true
+          response:
+            statusCodes:
+              200:
+                pattern: ''
+  get-file-details:
+    handler: handler.get_file_metadata
+    events:
+      - http:
+          path: get-file-details
+          method: get
+          integration: lambda
+          cors: true
+          response:
+            statusCodes:
+              200:
+                pattern: ''
+          authorizer:
+            name: CognitoAuthorizer
+            type: COGNITO_USER_POOLS
+            arn:
+              Fn::GetAtt: 
+                - BestUserPool
+                - Arn
+          request:
+            parameters:
+              querystrings:
+                file_path: true
+                username: true
+      - http:
+          path: get-file-details
+          method: options
+          integration: mock
+          cors: true
+          response:
+            statusCodes:
+              200:
+                pattern: ''
