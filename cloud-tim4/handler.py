@@ -4,7 +4,7 @@ from dateutil import parser
 
 def generate_presigned_post(object_key, expires_in):
     s3 = boto3.client('s3')
-    bucket_name = 's-najbolji-bucket-ikada'
+    bucket_name = 'najbolji-bucket-ikada'
 
     try:
         response = s3.generate_presigned_post(
@@ -44,7 +44,7 @@ def generate_s3_url(event, context):
         raise Exception("Bad request: File too large!")
 
     s3 = boto3.resource('s3')
-    bucket_name = 's-najbolji-bucket-ikada'
+    bucket_name = 'najbolji-bucket-ikada'
     
     bucket = s3.Bucket(bucket_name)
     object_keys = [obj.key for obj in bucket.objects.all()]
@@ -102,7 +102,7 @@ def get_user_data(event, context):
     items = []
     s3client = boto3.client('s3')
     s3bucket = boto3.resource('s3')
-    my_bucket = s3bucket.Bucket('s-najbolji-bucket-ikada')
+    my_bucket = s3bucket.Bucket('najbolji-bucket-ikada')
     
     dynamodb = boto3.client('dynamodb')
     key = {"partial_path": {"S" : ""} }
@@ -124,7 +124,7 @@ def get_user_data(event, context):
         
         date_created = parser.isoparse(date_created_str)
         path = username + "/" + object_summary.key
-        url = s3client.generate_presigned_url(ClientMethod = 'get_object', Params = { 'Bucket': 's-najbolji-bucket-ikada', 'Key': object_summary.key })
+        url = s3client.generate_presigned_url(ClientMethod = 'get_object', Params = { 'Bucket': 'najbolji-bucket-ikada', 'Key': object_summary.key })
 
         items.append( {
             "file":object_summary.key,

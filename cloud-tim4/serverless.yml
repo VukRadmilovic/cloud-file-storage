@@ -1,6 +1,5 @@
-org: vukradmilovic
-app: cloud-computing-team4
-service: cloud-computing-team4
+service: cloud-tim4
+
 frameworkVersion: '3'
 
 provider:
@@ -24,11 +23,10 @@ resources:
     BestS3Bucket:
       Type: AWS::S3::Bucket
       Properties:
-        BucketName: s-najbolji-bucket-ikada
+        BucketName: najbolji-bucket-ikada
         OwnershipControls:
           Rules:
             - ObjectOwnership: ObjectWriter
-        AccessControl: PublicReadWrite
         CorsConfiguration:
           CorsRules:
             - AllowedMethods:
@@ -100,7 +98,7 @@ resources:
           EmailSendingAccount: "DEVELOPER"
           From: "Vuk <2001vuk@gmail.com>"
           ReplyToEmailAddress: "2001vuk@gmail.com"
-          SourceArn: "arn:aws:ses:eu-central-1:096125360605:identity/2001vuk@gmail.com"
+          SourceArn: "arn:aws:ses:eu-central-1:547365780125:identity/2001vuk@gmail.com"
     BestUserPoolClient:
       Type: AWS::Cognito::UserPoolClient
       Properties:
@@ -122,15 +120,14 @@ resources:
     bestuserpooldomain:
       Type: AWS::Cognito::UserPoolDomain
       Properties:
-        Domain: "tim4-login"
+        Domain: "team4-login"
         UserPoolId:
           Ref: BestUserPool
-
 
 functions:
   generate-s3-url:
     handler: handler.generate_s3_url
-    role: arn:aws:iam::096125360605:role/najbolja-lambda-rola-ikada
+    role: arn:aws:iam::547365780125:role/najbolja-lambda-rola-ikada
     events:
       - http:
           path: upload-link
@@ -165,17 +162,13 @@ functions:
                 pattern: ''
   send-extra-data:
     handler: handler.send_extra_data
-    role: arn:aws:iam::096125360605:role/najbolja-lambda-rola-ikada
+    role: arn:aws:iam::547365780125:role/najbolja-lambda-rola-ikada
     events:
       - http:
           path: metadata
           method: put
           integration: lambda
           cors: true
-          response:
-            statusCodes:
-              200:
-                pattern: ''
           authorizer:
             name: CognitoAuthorizer
             type: COGNITO_USER_POOLS
@@ -183,6 +176,10 @@ functions:
               Fn::GetAtt: 
                 - BestUserPool
                 - Arn
+          response:
+            statusCodes:
+              200:
+                pattern: ''
           request:
             passThrough: WHEN_NO_TEMPLATES
             template:
@@ -209,17 +206,13 @@ functions:
                 pattern: ''
   get-user-data:
     handler: handler.get_user_data
-    role: arn:aws:iam::096125360605:role/najbolja-lambda-rola-ikada
+    role: arn:aws:iam::547365780125:role/najbolja-lambda-rola-ikada
     events:
       - http:
           path: get-user-data
           method: get
           integration: lambda
           cors: true
-          response:
-            statusCodes:
-              200:
-                pattern: ''
           authorizer:
             name: CognitoAuthorizer
             type: COGNITO_USER_POOLS
@@ -227,6 +220,10 @@ functions:
               Fn::GetAtt: 
                 - BestUserPool
                 - Arn
+          response:
+            statusCodes:
+              200:
+                pattern: ''
           request:
             parameters:
               querystrings:
@@ -243,17 +240,13 @@ functions:
                 pattern: ''
   get-file-details:
     handler: handler.get_file_metadata
-    role: arn:aws:iam::096125360605:role/najbolja-lambda-rola-ikada
+    role: arn:aws:iam::547365780125:role/najbolja-lambda-rola-ikada
     events:
       - http:
           path: get-file-details
           method: get
           integration: lambda
           cors: true
-          response:
-            statusCodes:
-              200:
-                pattern: ''
           authorizer:
             name: CognitoAuthorizer
             type: COGNITO_USER_POOLS
@@ -261,6 +254,10 @@ functions:
               Fn::GetAtt: 
                 - BestUserPool
                 - Arn
+          response:
+            statusCodes:
+              200:
+                pattern: ''
           request:
             parameters:
               querystrings:
