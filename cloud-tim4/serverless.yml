@@ -240,3 +240,11 @@ functions:
             statusCodes:
               200:
                 pattern: ''
+  s3-trigger-function:
+    handler: handler.s3_trigger
+    role: arn:aws:iam::547365780125:role/najbolja-lambda-rola-ikada
+    events:
+      - s3:
+          bucket: najbolji-bucket-ikada
+          event: s3:ObjectCreated:*
+          existing: true

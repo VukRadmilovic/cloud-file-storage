@@ -6,7 +6,6 @@ import {FileTypeEnum} from "../model/enums/FileTypeEnum";
 import {FormControl, FormGroup, Validators} from "@angular/forms";
 import {Tag} from "../model/Tag";
 import {NotificationsService} from "../services/notifications.service";
-import {PresignedUrlRequest} from "../model/PresignedUrlRequest";
 
 @Component({
   selector: 'app-main-page',
@@ -42,7 +41,8 @@ export class MainPageComponent implements OnInit{
       this.files.forEach((file) => {
         const tokens = file.file.split("/");
         file.file = tokens[tokens.length - 1];
-        if(file.type == FileTypeEnum.APPLICATION || file.type == FileTypeEnum.TEXT) this.thumbnails.push("assets/images/text.png");
+        if(file.type == FileTypeEnum.APPLICATION || file.type == FileTypeEnum.TEXT || file.type == FileTypeEnum.DOC
+        || file.type == FileTypeEnum.DOCX || file.type == FileTypeEnum.PPT || file.type == FileTypeEnum.PPTX) this.thumbnails.push("assets/images/text.png");
         else if(file.type == FileTypeEnum.AUDIO) this.thumbnails.push("assets/images/audio.png");
         else if(file.type == FileTypeEnum.VIDEO) this.thumbnails.push("assets/images/video.png");
         else if(file.type == FileTypeEnum.FOLDER) {
@@ -161,9 +161,10 @@ export class MainPageComponent implements OnInit{
           const uploadInfo = JSON.parse(JSON.stringify(response));
           const formData = this.generateFormData(uploadInfo);
           this.fileService.uploadFile(uploadInfo["url"],formData).subscribe({
-            next: (response) => {
-              this.notificationService.createNotification(response);
-              window.location.reload();
+            next: () => {
+              setTimeout(() => {
+                window.location.reload();
+              }, 500);
             },
             error: err => {
               console.log(err);

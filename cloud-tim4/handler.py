@@ -9,7 +9,7 @@ supported_file_types = ["audio/aac", "audio/mp3", "application/x-abiword", "imag
 "audio/ogg","video/ogg","audio/opus","application/ogg","image/png","application/pdf","application/vnd.ms-powerpoint",
 "application/vnd.openxmlformats-officedocument.presentationml.presentation","application/rtf","image/svg+xml","image/tiff","video/mp2t","text/plain",
 "audio/wav","audio/x-wav","audio/webm","video/webm","image/webp","application/vnd.ms-excel","application/xhtml+xml",
-"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet","application/xml","text/xml", "image/jpg"]
+"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet","application/xml","text/xml", "image/jpg", "txt", "ppt", "pptx", "doc", "docx"]
 
 def generate_presigned_post(object_key, expires_in):
     s3 = boto3.client('s3')
@@ -30,6 +30,22 @@ def isfloat(num):
         return True
     except ValueError:
         return False
+
+def s3_trigger(event, context):
+    dynamodb = boto3.client('dynamodb')
+    for record in event['Records']:
+        file_key = str(record['s3']['object']['key']).replace("+", " ")
+
+        dynamodb.update_item(
+            TableName='s-metadata',
+            Key={
+                'partial_path': {'S': file_key}
+            },
+            UpdateExpression='SET valid = :value',
+            ExpressionAttributeValues={
+                ':value': {'S': 'yes'}
+            }
+        )
 
 def generate_s3_url(event, context):
     name = event['file_name']
@@ -103,8 +119,16 @@ def get_user_data(event, context):
         else:
             type = typeArr[0].split("/")[0].upper()
         key['partial_path']["S"] = object_summary.key
-        date_created_str = dynamodb.get_item(TableName='s-metadata', Key=key)['Item']['creation_date']['S']
-        
+
+        item = dynamodb.get_item(TableName='s-metadata', Key=key)['Item']
+        date_created_str = item['creation_date']['S']
+        try:
+            valid = item['valid']['S']
+            if valid == 'no':
+                continue
+        except:
+            pass
+
         date_created = parser.isoparse(date_created_str)
         path = username + "/" + object_summary.key
         url = s3client.generate_presigned_url(ClientMethod = 'get_object', Params = { 'Bucket': 'najbolji-bucket-ikada', 'Key': object_summary.key })
