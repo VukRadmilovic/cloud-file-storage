@@ -24,6 +24,7 @@ resources:
       Type: AWS::S3::Bucket
       Properties:
         BucketName: najbolji-bucket-ikada
+        AccessControl: PublicReadWrite
         OwnershipControls:
           Rules:
             - ObjectOwnership: ObjectWriter
