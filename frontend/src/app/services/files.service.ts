@@ -22,16 +22,12 @@ export class FilesService {
     return this.http.get<FileBasicInfo[]>(baseURL + 'get-user-data?username=' + this.userService.getLoggedUsername() + "&album=0");
   }
 
-  public requestUpload(fileInfo : PresignedUrlRequest) : Observable<any> {
-    return this.http.post<any>(baseURL + "upload-link?username=" + this.userService.getLoggedUsername(), fileInfo);
+  public requestUpload(metadata : any) : Observable<any> {
+    return this.http.post<any>(baseURL + "upload-link?username=" + this.userService.getLoggedUsername(), metadata);
   }
 
   public uploadFile(url: string, fileInfo: FormData) : Observable<any> {
     return this.http.post(url, fileInfo, {headers:this.headers});
-  }
-
-  public uploadMetaData(metadata: any ) : Observable<string> {
-    return this.http.put<string>(baseURL + "metadata?username=" + this.userService.getLoggedUsername(), metadata);
   }
 
   public getFileData(filePath : string) : Observable<any> {

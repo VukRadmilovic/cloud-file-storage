@@ -122,7 +122,7 @@ export class MainPageComponent implements OnInit{
       next: response => {
         const itemInfo = JSON.parse(response);
         this.tags = [];
-        const hiddenProperties = ["partial_path","file_name","creation_date","last_modification_date","size","type"];
+        const hiddenProperties = ["partial_path","file_name","creation_date","last_modification_date","size","type","valid"];
         for (let key in itemInfo) {
           if (Object.prototype.hasOwnProperty.call(itemInfo, key)) {
             if(hiddenProperties.indexOf(key) <= -1) {
@@ -142,12 +142,17 @@ export class MainPageComponent implements OnInit{
   }
 
   public upload() : void {
-    const fileInfo : PresignedUrlRequest = {
-      type : this.uploadedFile.type,
-      size: this.uploadedFile.size,
-      name : this.uploadedFile.name
-    }
-    this.fileService.requestUpload(fileInfo).subscribe( {
+    const now = new Date();
+    const metadata = new Map();
+    metadata.set("file_name",this.uploadedFile.name);
+    metadata.set("type",this.uploadedFile.type);
+    metadata.set("size", this.uploadedFile.size);
+    metadata.set("creation_date",now);
+    metadata.set("last_modification_date",now);
+    this.tags.forEach((tag) => {
+      metadata.set(tag.name,tag.value);
+    });
+    this.fileService.requestUpload(Object.fromEntries(metadata.entries())).subscribe( {
       next : response => {
           if(response.hasOwnProperty('errorMessage')) {
             this.notificationService.createNotification(response.errorMessage);
@@ -156,27 +161,9 @@ export class MainPageComponent implements OnInit{
           const uploadInfo = JSON.parse(JSON.stringify(response));
           const formData = this.generateFormData(uploadInfo);
           this.fileService.uploadFile(uploadInfo["url"],formData).subscribe({
-            next: () => {
-
-                  const now = new Date();
-                  const metadata = new Map();
-                  metadata.set("file_name",this.uploadedFile.name);
-                  metadata.set("type",this.uploadedFile.type);
-                  metadata.set("size",this.uploadedFile.size);
-                  metadata.set("creation_date",now);
-                  metadata.set("last_modification_date",now);
-                  this.tags.forEach((tag) => {
-                    metadata.set(tag.name,tag.value);
-                  });
-                  this.fileService.uploadMetaData(Object.fromEntries(metadata.entries())).subscribe( {
-                    next: (response) => {
-                        this.notificationService.createNotification(response);
-                        window.location.reload();
-                    },
-                    error: (error) => {
-                      console.log(error);
-                    }
-                  })
+            next: (response) => {
+              this.notificationService.createNotification(response);
+              window.location.reload();
             },
             error: err => {
               console.log(err);

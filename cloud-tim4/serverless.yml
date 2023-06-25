@@ -149,39 +149,6 @@ functions:
               400:
                 pattern: 'Bad request: .*'
           request:
-            parameters:
-              querystrings:
-                username: true
-      - http:
-          path: upload-link
-          method: options
-          integration: mock
-          cors: true
-          response:
-            statusCodes:
-              200:
-                pattern: ''
-  send-extra-data:
-    handler: handler.send_extra_data
-    role: arn:aws:iam::547365780125:role/najbolja-lambda-rola-ikada
-    events:
-      - http:
-          path: metadata
-          method: put
-          integration: lambda
-          cors: true
-          authorizer:
-            name: CognitoAuthorizer
-            type: COGNITO_USER_POOLS
-            arn:
-              Fn::GetAtt: 
-                - BestUserPool
-                - Arn
-          response:
-            statusCodes:
-              200:
-                pattern: ''
-          request:
             passThrough: WHEN_NO_TEMPLATES
             template:
               application/json: |
@@ -197,7 +164,7 @@ functions:
               querystrings:
                 username: true
       - http:
-          path: metadata
+          path: upload-link
           method: options
           integration: mock
           cors: true

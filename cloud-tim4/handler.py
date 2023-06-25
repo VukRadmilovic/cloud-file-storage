@@ -2,6 +2,15 @@ import json
 import boto3
 from dateutil import parser
 
+supported_file_types = ["audio/aac", "audio/mp3", "application/x-abiword", "image/avif", "video/x-msvideo", "image/bmp", "application/x-cdf",
+"text/css","text/csv","application/msword","application/vnd.openxmlformats-officedocument.wordprocessingml.document","image/gif","text/html",
+"image/vnd.microsoft.icon","image/jpeg","application/json","audio/midi","audio/x-midi","audio/mpeg","video/mp4","video/mpeg",
+"application/vnd.oasis.opendocument.presentation","application/vnd.oasis.opendocument.spreadsheet","application/vnd.oasis.opendocument.text",
+"audio/ogg","video/ogg","audio/opus","application/ogg","image/png","application/pdf","application/vnd.ms-powerpoint",
+"application/vnd.openxmlformats-officedocument.presentationml.presentation","application/rtf","image/svg+xml","image/tiff","video/mp2t","text/plain",
+"audio/wav","audio/x-wav","audio/webm","video/webm","image/webp","application/vnd.ms-excel","application/xhtml+xml",
+"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet","application/xml","text/xml", "image/jpg"]
+
 def generate_presigned_post(object_key, expires_in):
     s3 = boto3.client('s3')
     bucket_name = 'najbolji-bucket-ikada'
@@ -23,24 +32,17 @@ def isfloat(num):
         return False
 
 def generate_s3_url(event, context):
-    file_type = event['body']['type']
-    file_size = event['body']['size']
-    file_name = event['body']['name']
-    username = event['query']['username']
+    name = event['file_name']
+    type = event['type']
+    size = int(event['size'])
+    creation_date = event['creation_date']
+    last_modification_date = event['last_modification_date']
+    username = event['username']
 
-    supported_file_types = ["audio/aac", "audio/mp3", "application/x-abiword", "image/avif", "video/x-msvideo", "image/bmp", "application/x-cdf",
-    "text/css","text/csv","application/msword","application/vnd.openxmlformats-officedocument.wordprocessingml.document","image/gif","text/html",
-    "image/vnd.microsoft.icon","image/jpeg","application/json","audio/midi","audio/x-midi","audio/mpeg","video/mp4","video/mpeg",
-    "application/vnd.oasis.opendocument.presentation","application/vnd.oasis.opendocument.spreadsheet","application/vnd.oasis.opendocument.text",
-    "audio/ogg","video/ogg","audio/opus","application/ogg","image/png","application/pdf","application/vnd.ms-powerpoint",
-    "application/vnd.openxmlformats-officedocument.presentationml.presentation","application/rtf","image/svg+xml","image/tiff","video/mp2t","text/plain",
-    "audio/wav","audio/x-wav","audio/webm","video/webm","image/webp","application/vnd.ms-excel","application/xhtml+xml",
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet","application/xml","text/xml", "image/jpg"]
-
-    if(file_type not in supported_file_types):
+    if(type not in supported_file_types):
         raise Exception("Bad request: File type is not supported!")
 
-    if(file_size > 52428800):
+    if(size > 52428800):
         raise Exception("Bad request: File too large!")
 
     s3 = boto3.resource('s3')
@@ -48,28 +50,19 @@ def generate_s3_url(event, context):
     
     bucket = s3.Bucket(bucket_name)
     object_keys = [obj.key for obj in bucket.objects.all()]
-    path = username + '/' + file_name
+    path = username + '/' + name
     
     if path in object_keys:
         raise Exception("Bad request: file with the same name already exists!")
     
-    return generate_presigned_post(path, 3600)
-        
-def send_extra_data(event, context):
-    file_name = event['file_name']
-    type = event['type']
-    size = event['size']
-    creation_date = event['creation_date']
-    last_modification_date = event['last_modification_date']
-    username = event['username']
-
     item = {
-        "partial_path" : username + "/" + file_name,
-        "file_name" : file_name,
-        "type" : type,
-        "size" : size,
-        "creation_date" : creation_date,
-        "last_modification_date" : last_modification_date
+        "partial_path" : username + "/" + name,
+        "file_name" : str(name),
+        "type" : str(type),
+        "size" : str(size),
+        "creation_date" : str(creation_date),
+        "last_modification_date" : str(last_modification_date),
+        "valid" : "no"
     }
 
     for key, value in event.items():
@@ -84,19 +77,9 @@ def send_extra_data(event, context):
     dynamodb = boto3.resource('dynamodb')
     table = dynamodb.Table('s-metadata')
     table.put_item(Item=item)
-
-    return "Successfully uploaded a file!"
+    return generate_presigned_post(path, 3600)
 
 def get_user_data(event, context):
-    supported_file_types = ["audio/aac", "audio/mp3", "application/x-abiword", "image/avif", "video/x-msvideo", "image/bmp", "application/x-cdf",
-    "text/css","text/csv","application/msword","application/vnd.openxmlformats-officedocument.wordprocessingml.document","image/gif","text/html",
-    "image/vnd.microsoft.icon","image/jpeg","application/json","audio/midi","audio/x-midi","audio/mpeg","video/mp4","video/mpeg",
-    "application/vnd.oasis.opendocument.presentation","application/vnd.oasis.opendocument.spreadsheet","application/vnd.oasis.opendocument.text",
-    "audio/ogg","video/ogg","audio/opus","application/ogg","image/png","application/pdf","application/vnd.ms-powerpoint",
-    "application/vnd.openxmlformats-officedocument.presentationml.presentation","application/rtf","image/svg+xml","image/tiff","video/mp2t","text/plain",
-    "audio/wav","audio/x-wav","audio/webm","video/webm","image/webp","application/vnd.ms-excel","application/xhtml+xml",
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet","application/xml","text/xml", "image/jpg"]
-    
     username = event['query']['username']
     album = event['query']['album']
     items = []
