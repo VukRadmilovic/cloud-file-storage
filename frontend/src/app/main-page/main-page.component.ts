@@ -172,7 +172,7 @@ export class MainPageComponent implements OnInit{
             next: () => {
               setTimeout(() => {
                 window.location.reload();
-              }, 1000);
+              }, 2000);
             },
             error: err => {
               console.log(err);
@@ -219,7 +219,7 @@ export class MainPageComponent implements OnInit{
             this.notificationService.createNotification(response);
             setTimeout(() => {
               window.location.reload();
-            }, 1500);
+            }, 2000);
           }
         },
         error : error => {
@@ -240,7 +240,7 @@ export class MainPageComponent implements OnInit{
             next: () => {
               setTimeout(() => {
                 window.location.reload();
-              }, 1500);
+              }, 2000);
             },
             error: err => {
               console.log(err);

@@ -244,7 +244,7 @@ functions:
             statusCodes:
               200:
                 pattern: ''
-  s3-trigger-function:
+  s3-trigger:
     handler: handler.s3_trigger
     role: arn:aws:iam::547365780125:role/najbolja-lambda-rola-ikada
     events:
