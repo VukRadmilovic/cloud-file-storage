@@ -219,7 +219,7 @@ export class MainPageComponent implements OnInit{
             this.notificationService.createNotification(response);
             setTimeout(() => {
               window.location.reload();
-            }, 1000);
+            }, 1500);
           }
         },
         error : error => {
@@ -240,7 +240,7 @@ export class MainPageComponent implements OnInit{
             next: () => {
               setTimeout(() => {
                 window.location.reload();
-              }, 1000);
+              }, 1500);
             },
             error: err => {
               console.log(err);
@@ -254,6 +254,17 @@ export class MainPageComponent implements OnInit{
         }
       })
     }
+  }
+
+  public delete() : void {
+    this.fileService.deleteFile(this.selectedFileInfo['partial_path']).subscribe({
+      next: response => {
+        this.notificationService.createNotification(response);
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
+      }
+    })
   }
 
   private generateFormData(uploadInfo: any) : FormData {

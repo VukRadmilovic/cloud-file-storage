@@ -46,4 +46,8 @@ export class FilesService {
     return  this.http.get<any>(baseURL + "/get-file-details?username=" + this.userService.getLoggedUsername() + "&file_path=" + filePath);
   }
 
+  public deleteFile(file_path: string): Observable<any> {
+    return this.http.delete(baseURL + "delete-item?username=" + this.userService.getLoggedUsername() + "&file_path=" + file_path);
+  }
+
 }

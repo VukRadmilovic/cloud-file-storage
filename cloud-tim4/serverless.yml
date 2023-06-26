@@ -226,6 +226,10 @@ functions:
             statusCodes:
               200:
                 pattern: ''
+              400:
+                pattern: 'Bad request: .*'
+              404:
+                pattern: 'Not found: .*'
           request:
             parameters:
               querystrings:
@@ -337,6 +341,44 @@ functions:
                 username: true
       - http:
           path: modify-full
+          method: options
+          integration: mock
+          cors: true
+          response:
+            statusCodes:
+              200:
+                pattern: ''
+  delete-item:
+    handler: handler.delete_item
+    role: arn:aws:iam::547365780125:role/najbolja-lambda-rola-ikada
+    events:
+      - http:
+          path: delete-item
+          method: delete
+          integration: lambda
+          cors: true
+          authorizer:
+            name: CognitoAuthorizer
+            type: COGNITO_USER_POOLS
+            arn:
+              Fn::GetAtt: 
+                - BestUserPool
+                - Arn
+          response:
+            statusCodes:
+              200:
+                pattern: ''
+              400:
+                pattern: 'Bad request: .*'
+              404:
+                pattern: 'Not found: .*'
+          request:
+            parameters:
+              querystrings:
+                file_path: true
+                username: true
+      - http:
+          path: delete-item
           method: options
           integration: mock
           cors: true
