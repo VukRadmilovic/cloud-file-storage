@@ -1,7 +1,8 @@
 <app-navigation></app-navigation>
 <body class="width-100">
 <div class="flex-row height-100">
-  <div class="padding width-50">
+  <div class="padding width-50 height-100">
+    <p style="text-align: left">Current path:   {{current_path}}</p>
     <mat-grid-list cols="3" rowHeight="7:5" class="width-100">
           <mat-grid-tile *ngFor="let file of files;let i=index">
             <div class="padding width-100 height-100">
@@ -16,6 +17,9 @@
             </div>
         </mat-grid-tile>
     </mat-grid-list>
+    <button mat-mini-fab color="primary" (click)="goBack()" aria-label="back" style="position: absolute;bottom: 30px;left: 20px">
+      <mat-icon>arrow_back_ios</mat-icon>
+    </button>
   </div>
     <div class="width-50 height-100 upload-footer">
       <br>
@@ -78,6 +82,9 @@
 
   <div class="width-50 height-100 upload-footer stacked overflow-y-scroll" *ngIf="showFileDetails">
     <br>
+    <button mat-mini-fab color="primary" (click)="showUploadStation()" aria-label="back" style="position: absolute;top: 10px;left: 20px">
+      <mat-icon>arrow_back_ios</mat-icon>
+    </button>
     <b><p class="mat-headline-3">File details</p></b>
     <img  class="width-90 center-horizontal" src = "{{selectedFileThumbnail}}" />
     <br>

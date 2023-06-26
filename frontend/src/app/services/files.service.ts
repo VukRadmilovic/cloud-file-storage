@@ -18,8 +18,8 @@ export class FilesService {
     skip: 'true',
   });
 
-  public getUserFiles() : Observable<FileBasicInfo[]> {
-    return this.http.get<FileBasicInfo[]>(baseURL + 'get-user-data?username=' + this.userService.getLoggedUsername() + "&album=0");
+  public getUserFiles(path: string) : Observable<FileBasicInfo[]> {
+    return this.http.get<FileBasicInfo[]>(baseURL + 'get-user-data?username=' + this.userService.getLoggedUsername() + "&album=" + path);
   }
 
   public requestUpload(metadata : any) : Observable<any> {

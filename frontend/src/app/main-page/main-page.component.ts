@@ -6,7 +6,6 @@ import {FileTypeEnum} from "../model/enums/FileTypeEnum";
 import {FormControl, FormGroup, Validators} from "@angular/forms";
 import {Tag} from "../model/Tag";
 import {NotificationsService} from "../services/notifications.service";
-import {resolve} from "@angular/compiler-cli";
 
 @Component({
   selector: 'app-main-page',
@@ -17,6 +16,7 @@ export class MainPageComponent implements OnInit{
 
   files! : FileBasicInfo[];
   tags : Tag[] = [];
+  current_path : string =  "/";
   uploadedFile!: File;
   uploadedFileForModification : File | null = null;
   selectedFileInfo! : any;
@@ -37,7 +37,7 @@ export class MainPageComponent implements OnInit{
   public ngOnInit() {
     const token = window.location.href.split("#")[1].split("=")[1].split("&")[0];
     this.userService.login(token);
-    this.fileService.getUserFiles().subscribe( result => {
+    this.fileService.getUserFiles('0').subscribe( result => {
       let objects = JSON.parse(result.toString())
       this.files = objects;
       this.files.forEach((file) => {
@@ -118,41 +118,96 @@ export class MainPageComponent implements OnInit{
     this.tagForm.controls['tagValue'].setValue(tag.value);
   }
 
+  public showUploadStation() : void {
+    this.showFileDetails = false;
+  }
+
+  public goBack() : void {
+    if(this.current_path == "/") return;
+    const tokens = this.current_path.split('/')
+    this.current_path = "/" + tokens.slice(0,tokens.length - 2).join('/')
+    let path = ""
+    if(this.current_path == "/") path = '0'
+    else path = this.current_path.substring(1,this.current_path.length-1)
+    this.fileService.getUserFiles(path).subscribe( result => {
+      let objects = JSON.parse(result.toString())
+      this.files = objects;
+      this.files.forEach((file) => {
+        const tokens = file.file.split("/");
+        file.file = tokens[tokens.length - 1];
+        if(file.type == FileTypeEnum.APPLICATION || file.type == FileTypeEnum.TEXT || file.type == FileTypeEnum.DOC
+          || file.type == FileTypeEnum.DOCX || file.type == FileTypeEnum.PPT || file.type == FileTypeEnum.PPTX) this.thumbnails.push("assets/images/text.png");
+        else if(file.type == FileTypeEnum.AUDIO) this.thumbnails.push("assets/images/audio.png");
+        else if(file.type == FileTypeEnum.VIDEO) this.thumbnails.push("assets/images/video.png");
+        else if(file.type == FileTypeEnum.FOLDER) {
+          file.file = tokens[tokens.length - 2];
+          this.thumbnails.push("assets/images/folder.png");
+        }
+        else this.thumbnails.push(file.url);
+      })
+    });
+  }
+
   public viewDetails(file : FileBasicInfo, index: number) {
-    this.showFileDetails = true;
-    this.selectedFile = file;
-    this.selectedFileThumbnail = this.thumbnails[index];
-    this.tagForm.controls['tagValue'].setValue('');
-    this.tagForm.controls['tagName'].setValue('');
-    const file_path = this.userService.getLoggedUsername() + "/" + file.file;
-    this.fileService.getFileData(file_path).subscribe( {
-      next: response => {
-        const itemInfo = JSON.parse(response);
-        this.selectedFileInfo = itemInfo;
-        this.tags = [];
-        const hiddenProperties = ["partial_path","file_name","creation_date","last_modification_date","size","type","valid"];
-        for (let key in itemInfo) {
-          if (Object.prototype.hasOwnProperty.call(itemInfo, key)) {
-            if(hiddenProperties.indexOf(key) <= -1) {
-              const tag : Tag = {
-                name : key,
-                value : itemInfo[key]
+    if(file.type == FileTypeEnum.FOLDER) {
+      this.files = []
+      this.thumbnails = []
+      this.current_path += file.file + "/";
+      this.fileService.getUserFiles(this.current_path.substring(1,this.current_path.length-1)).subscribe( result => {
+        let objects = JSON.parse(result.toString())
+        this.files = objects;
+        this.files.forEach((file) => {
+          const tokens = file.file.split("/");
+          file.file = tokens[tokens.length - 1];
+          if(file.type == FileTypeEnum.APPLICATION || file.type == FileTypeEnum.TEXT || file.type == FileTypeEnum.DOC
+            || file.type == FileTypeEnum.DOCX || file.type == FileTypeEnum.PPT || file.type == FileTypeEnum.PPTX) this.thumbnails.push("assets/images/text.png");
+          else if(file.type == FileTypeEnum.AUDIO) this.thumbnails.push("assets/images/audio.png");
+          else if(file.type == FileTypeEnum.VIDEO) this.thumbnails.push("assets/images/video.png");
+          else if(file.type == FileTypeEnum.FOLDER) {
+            file.file = tokens[tokens.length - 2];
+            this.thumbnails.push("assets/images/folder.png");
+          }
+          else this.thumbnails.push(file.url);
+        })
+      });
+    }
+    else {
+      this.showFileDetails = true;
+      this.selectedFile = file;
+      this.selectedFileThumbnail = this.thumbnails[index];
+      this.tagForm.controls['tagValue'].setValue('');
+      this.tagForm.controls['tagName'].setValue('');
+      const file_path = this.userService.getLoggedUsername() + this.current_path + file.file;
+      this.fileService.getFileData(file_path).subscribe({
+        next: response => {
+          console.log(response)
+          const itemInfo = JSON.parse(response);
+          this.selectedFileInfo = itemInfo;
+          this.tags = [];
+          const hiddenProperties = ["partial_path", "file_name", "creation_date", "last_modification_date", "size", "type", "valid"];
+          for (let key in itemInfo) {
+            if (Object.prototype.hasOwnProperty.call(itemInfo, key)) {
+              if (hiddenProperties.indexOf(key) <= -1) {
+                const tag: Tag = {
+                  name: key,
+                  value: itemInfo[key]
+                }
+                this.tags.push(tag)
               }
-              this.tags.push(tag)
             }
           }
+        },
+        error: err => {
+          console.log(err)
         }
-      },
-      error : err => {
-        console.log(err)
-      }
-    })
+      })
+    }
   }
 
   public upload() : void {
     const now = new Date();
     const metadata = new Map();
-    metadata.set("file_name",this.uploadedFile.name);
+    metadata.set("file_name",this.current_path.substring(1,this.current_path.length)  + this.uploadedFile.name);
     metadata.set("type",this.uploadedFile.type);
     metadata.set("size", this.uploadedFile.size);
     metadata.set("creation_date",now);

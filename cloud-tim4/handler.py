@@ -225,41 +225,55 @@ def get_user_data(event, context):
 
     prefix = username + "/"
     if(album != '0'):
-        prefix += album + "/" 
+        prefix += album + "/"
+    final_list = []
+    correct_tokens = len(prefix.split('/'))
     for object_summary in my_bucket.objects.filter(Prefix=prefix):
+        check = object_summary.key.split('/')
+        if((len(check) > correct_tokens and check[-1] != '') or len(check) < correct_tokens or (len(check) == correct_tokens and check[-1] == '')):
+            continue
         tokens = object_summary.key.split('.')
         extension = tokens[len(tokens) - 1]
         typeArr = [x for x in supported_file_types if extension in x]
         type = ""
         if(len(typeArr) == 0):
             type = "FOLDER"
-        else:
-            type = typeArr[0].split("/")[0].upper()
-        key['partial_path']["S"] = object_summary.key
-
-        item = dynamodb.get_item(TableName='s-metadata', Key=key)['Item']
-        date_created_str = item['creation_date']['S']
-        try:
-            valid = item['valid']['S']
-            if valid == 'no':
-                continue
-        except:
-            pass
-
-        date_created = parser.isoparse(date_created_str)
-        path = username + "/" + object_summary.key
-        url = s3client.generate_presigned_url(ClientMethod = 'get_object', Params = { 'Bucket': 'najbolji-bucket-ikada', 'Key': object_summary.key })
-
-        items.append( {
+            final_list.append({
             "file":object_summary.key,
             "type":type,
-            "date_created":date_created,
-            "url":url
-        })
+            "date_created":None,
+            "url":""
+            })
+            
+        else:
+            type = typeArr[0].split("/")[0].upper()
+        if type != "FOLDER":
+            key['partial_path']["S"] = object_summary.key
+    
+            item = dynamodb.get_item(TableName='s-metadata', Key=key)['Item']
+            date_created_str = item['creation_date']['S']
+            try:
+                valid = item['valid']['S']
+                if valid == 'no':
+                    continue
+            except:
+                pass
+    
+            date_created = parser.isoparse(date_created_str)
+            path = username + "/" + object_summary.key
+            url = s3client.generate_presigned_url(ClientMethod = 'get_object', Params = { 'Bucket': 'najbolji-bucket-ikada', 'Key': object_summary.key })
+    
+            items.append( {
+                "file":object_summary.key,
+                "type":type,
+                "date_created":date_created,
+                "url":url
+            })
     items.sort(key=lambda x: x['date_created'], reverse=True)
     for item in items:
         item['date_created'] = item['date_created'].strftime("%Y-%m-%d %H:%M:")
-    return json.dumps(items)
+    final_list = final_list + items
+    return json.dumps(final_list)
 
 def get_file_metadata(event, context):
     file_path = event['query']['file_path']
