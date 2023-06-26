@@ -45,8 +45,11 @@ def isfloat(num):
 
 def s3_trigger(event, context):
     dynamodb = boto3.client('dynamodb')
-    for record in event['Records']:
-        file_key = str(record['s3']['object']['key']).replace("+", " ")
+
+    event_type = event['Records'][0]['eventName']
+
+    if event_type == "ObjectCreated:Post":
+        file_key = str(event['Records'][0]['s3']['object']['key']).replace("+", " ")
 
         dynamodb.update_item(
             TableName='s-metadata',
@@ -58,6 +61,42 @@ def s3_trigger(event, context):
                 ':value': {'S': 'yes'}
             }
         )
+    elif event_type == "ObjectCreated:Put":
+        try:
+            s3_object_key = str(event['Records'][0]['s3']['object']['key']).replace("+", " ")
+            dynamodb_table_name = 's-metadata'
+
+            source_key = s3_object_key + '2DUP2'
+            source_entry = dynamodb.get_item(
+                TableName=dynamodb_table_name,
+                Key={
+                    'partial_path': {'S': source_key}
+                }
+            )
+
+            if 'Item' not in source_entry:
+                raise Exception(f"Source entry '{source_key}' not found in DynamoDB.")
+
+            destination_item = source_entry['Item']
+            destination_item['partial_path'] = {'S': s3_object_key}
+
+            dynamodb.delete_item(
+                TableName=dynamodb_table_name,
+                Key={
+                    'partial_path': {'S': source_key}
+                }
+            )
+
+            dynamodb.put_item(
+                TableName=dynamodb_table_name,
+                Item=destination_item
+            )
+        except Exception as e:
+            print('Error:', e)
+            return {
+                'statusCode': 500,
+                'body': 'Error occurred'
+            }
 
 def generate_s3_url(event, context):
     name = event['file_name']
@@ -251,9 +290,9 @@ def full_modify_item(event, context):
             if key == 'username':
                 continue
             item[key] = {'S' : value}
+        item['partial_path']['S'] += '2DUP2'
         dynamodb.put_item(TableName='s-metadata', Item=item)
         return generate_presigned_put(file_path, 3600)
-        
     else:
         raise Exception('Not found: The file does not exist!')
     
