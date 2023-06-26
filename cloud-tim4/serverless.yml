@@ -248,3 +248,100 @@ functions:
           bucket: najbolji-bucket-ikada
           event: s3:ObjectCreated:*
           existing: true
+  modify-metadata:
+    handler: handler.modify_metadata
+    role: arn:aws:iam::547365780125:role/najbolja-lambda-rola-ikada
+    events:
+      - http:
+          path: modify-metadata
+          method: put
+          integration: lambda
+          cors: true
+          authorizer:
+            name: CognitoAuthorizer
+            type: COGNITO_USER_POOLS
+            arn:
+              Fn::GetAtt: 
+                - BestUserPool
+                - Arn
+          response:
+            statusCodes:
+              200:
+                pattern: ''
+              400:
+                pattern: 'Bad request: .*'
+              404:
+                pattern: 'Not found: .*'
+          request:
+            passThrough: WHEN_NO_TEMPLATES
+            template:
+              application/json: |
+                #set($inputRoot = $input.path('$'))
+                {
+                  #foreach($key in $inputRoot.keySet())
+                    "$key": "$inputRoot.get($key)"
+                    #if($foreach.hasNext),#end
+                  #end,
+                  "username": "$input.params('username')"
+                }
+            parameters:
+              querystrings:
+                username: true
+      - http:
+          path: modify-metadata
+          method: options
+          integration: mock
+          cors: true
+          response:
+            statusCodes:
+              200:
+                pattern: ''
+  full-modify:
+    handler: handler.full_modify_item
+    role: arn:aws:iam::547365780125:role/najbolja-lambda-rola-ikada
+    events:
+      - http:
+          path: modify-full
+          method: put
+          integration: lambda
+          cors: true
+          authorizer:
+            name: CognitoAuthorizer
+            type: COGNITO_USER_POOLS
+            arn:
+              Fn::GetAtt: 
+                - BestUserPool
+                - Arn
+          response:
+            statusCodes:
+              200:
+                pattern: ''
+              400:
+                pattern: 'Bad request: .*'
+              404:
+                pattern: 'Not found: .*'
+          request:
+            passThrough: WHEN_NO_TEMPLATES
+            template:
+              application/json: |
+                #set($inputRoot = $input.path('$'))
+                {
+                  #foreach($key in $inputRoot.keySet())
+                    "$key": "$inputRoot.get($key)"
+                    #if($foreach.hasNext),#end
+                  #end,
+                  "username": "$input.params('username')"
+                }
+            parameters:
+              querystrings:
+                username: true
+      - http:
+          path: modify-full
+          method: options
+          integration: mock
+          cors: true
+          response:
+            statusCodes:
+              200:
+                pattern: ''
+  

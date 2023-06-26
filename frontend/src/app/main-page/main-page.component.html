@@ -22,12 +22,12 @@
       <b><p class="mat-headline-3">Upload station</p></b>
       <div class="flex-row center-horizontal">
         <h4  style="margin-right: 20px;">Upload file: </h4>
-        <input type="file" style="margin-right: 20px;" (change)="onFileSelected($event)">
+        <input type="file" style="margin-right: 20px;" (change)="onFileSelected($event,false)">
       </div>
       <br>
       <h4>Added tags</h4>
       <mat-chip-grid #chipGrid aria-label="Added tags:" class="overflow-y-scroll center-horizontal border height-20 width-90">
-        <mat-basic-chip *ngFor="let tag of tags"
+        <mat-chip *ngFor="let tag of tags"
                   (removed)="removeTag(tag)"
                   (click)="chipClicked(tag)"
                   class="mat-h2 font-weight-medium">
@@ -35,7 +35,7 @@
           <button matChipRemove [attr.aria-label]="'Remove'">
             <mat-icon>cancel</mat-icon>
           </button>
-        </mat-basic-chip>
+        </mat-chip>
       </mat-chip-grid>
       <br>
       <div class="flex-row width-100">
@@ -84,7 +84,7 @@
     <br>
     <div class="flex-row center-horizontal">
       <h4 style="margin-right: 20px;">Upload changed file: </h4>
-      <input type="file" style="margin-right: 20px;" (change)="onFileSelected($event)">
+      <input type="file" style="margin-right: 20px;" (change)="onFileSelected($event, true)">
     </div>
     <br>
     <h4>Added tags</h4>
@@ -130,7 +130,7 @@
       <button mat-raised-button
               class="center-horizontal"
               color="primary"
-              (click)="upload()">Modify
+              (click)="modify()">Modify
       </button>
       <br>
     </div>

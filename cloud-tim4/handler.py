@@ -24,6 +24,18 @@ def generate_presigned_post(object_key, expires_in):
         raise
     return response
 
+def generate_presigned_put(object_key, expires_in):
+    s3 = boto3.client('s3')
+    bucket_name = 'najbolji-bucket-ikada'
+    try:
+        response = s3.generate_presigned_url(
+            ClientMethod = 'put_object',
+            ExpiresIn = expires_in, 
+            Params = {'Bucket': bucket_name, 'Key': object_key})
+    except:
+        raise
+    return response
+
 def isfloat(num):
     try:
         float(num)
@@ -166,3 +178,81 @@ def get_file_metadata(event, context):
     for key, value in file_info.items():
         item[key] = value['S']
     return json.dumps(item)
+
+def modify_metadata(event,context):
+    dynamodb = boto3.client('dynamodb')
+    username = event['username']
+    
+    file_path = event['partial_path']
+    key = {"partial_path": {"S" : file_path} }
+    
+    file_name = event['file_name']
+    file_type = event['type']
+    
+    if username != file_path.split("/")[0]:
+        raise Exception("Bad request: You are not the file's owner!")
+            
+    response = dynamodb.get_item(TableName='s-metadata', Key=key)
+    
+    if 'Item' in response:
+        real_file_name = response['Item']['file_name']['S']
+        if real_file_name != file_name:
+            raise Exception('Bad request: File name does not match!')
+        
+        real_file_type = response['Item']['type']['S']
+        if real_file_type != file_type:
+            raise Exception('Bad request: File type does not match!')
+        item = {}
+
+        for key, value in event.items():
+            if key == 'username':
+                continue
+            item[key] = {'S' : value}
+        dynamodb.put_item(TableName='s-metadata', Item=item)
+        return {
+            'statusCode': 200,
+            'body': json.dumps('Successfully modified the file!')
+        }
+        
+    else:
+        raise Exception('Not found: The file does not exist!')
+    
+def full_modify_item(event, context):
+    dynamodb = boto3.client('dynamodb')
+    file_name = event['file_name']
+    file_path = event['partial_path']
+    key = {"partial_path": {"S" : file_path} }
+    file_type = event['type']
+    file_size = int(event['size'])
+    username = event['username']
+
+    if(file_type not in supported_file_types):
+        raise Exception("Bad request: File type is not supported!")
+
+    if(file_size > 52428800):
+        raise Exception("Bad request: File too large!")
+        
+    if username != file_path.split("/")[0]:
+        raise Exception("Bad request: You are not the file's owner!")
+            
+    response = dynamodb.get_item(TableName='s-metadata', Key=key)
+    
+    if 'Item' in response:
+        real_file_name = response['Item']['file_name']['S']
+        if real_file_name != file_name:
+            raise Exception('Bad request: File name does not match!')
+        
+        real_file_type = response['Item']['type']['S']
+        if real_file_type != file_type:
+            raise Exception('Bad request: File type does not match!')
+        item = {}
+
+        for key, value in event.items():
+            if key == 'username':
+                continue
+            item[key] = {'S' : value}
+        dynamodb.put_item(TableName='s-metadata', Item=item)
+        return generate_presigned_put(file_path, 3600)
+        
+    else:
+        raise Exception('Not found: The file does not exist!')

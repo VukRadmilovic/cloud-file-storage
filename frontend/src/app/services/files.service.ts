@@ -26,6 +26,18 @@ export class FilesService {
     return this.http.post<any>(baseURL + "upload-link?username=" + this.userService.getLoggedUsername(), metadata);
   }
 
+  public modifyMetadataOnly(metadata: any) : Observable<any> {
+    return this.http.put<any>(baseURL + "modify-metadata?username=" + this.userService.getLoggedUsername(),metadata);
+  }
+
+  public modifyFile(file: File, url: string) : Observable<any> {
+    return this.http.put(url,file, {headers: this.headers});
+  }
+
+  public requestFullModification(metadata: any) : Observable<any> {
+    return this.http.put<any>(baseURL + "modify-full?username=" + this.userService.getLoggedUsername(), metadata);
+  }
+
   public uploadFile(url: string, fileInfo: FormData) : Observable<any> {
     return this.http.post(url, fileInfo, {headers:this.headers});
   }

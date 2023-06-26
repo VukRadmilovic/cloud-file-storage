@@ -6,6 +6,7 @@ import {FileTypeEnum} from "../model/enums/FileTypeEnum";
 import {FormControl, FormGroup, Validators} from "@angular/forms";
 import {Tag} from "../model/Tag";
 import {NotificationsService} from "../services/notifications.service";
+import {resolve} from "@angular/compiler-cli";
 
 @Component({
   selector: 'app-main-page',
@@ -17,6 +18,8 @@ export class MainPageComponent implements OnInit{
   files! : FileBasicInfo[];
   tags : Tag[] = [];
   uploadedFile!: File;
+  uploadedFileForModification : File | null = null;
+  selectedFileInfo! : any;
   enableUpload = false;
   thumbnails : string[] = [];
   showFileDetails = false;
@@ -35,7 +38,6 @@ export class MainPageComponent implements OnInit{
     const token = window.location.href.split("#")[1].split("=")[1].split("&")[0];
     this.userService.login(token);
     this.fileService.getUserFiles().subscribe( result => {
-      console.log(result)
       let objects = JSON.parse(result.toString())
       this.files = objects;
       this.files.forEach((file) => {
@@ -54,11 +56,16 @@ export class MainPageComponent implements OnInit{
     });
   }
 
-  public onFileSelected(event : any) : void {
+  public onFileSelected(event : any, isChange : boolean) : void {
     const files = event.target.files;
-    if(files.length == 0) this.enableUpload = false;
-    else this.enableUpload = true;
-    this.uploadedFile = files[0];
+    if(!isChange) {
+      if (files.length == 0) this.enableUpload = false;
+      else this.enableUpload = true;
+      this.uploadedFile = files[0];
+    }
+    else {
+      this.uploadedFileForModification = files[0];
+    }
   }
 
   public addTag(isChange: boolean) : void {
@@ -121,6 +128,7 @@ export class MainPageComponent implements OnInit{
     this.fileService.getFileData(file_path).subscribe( {
       next: response => {
         const itemInfo = JSON.parse(response);
+        this.selectedFileInfo = itemInfo;
         this.tags = [];
         const hiddenProperties = ["partial_path","file_name","creation_date","last_modification_date","size","type","valid"];
         for (let key in itemInfo) {
@@ -164,7 +172,7 @@ export class MainPageComponent implements OnInit{
             next: () => {
               setTimeout(() => {
                 window.location.reload();
-              }, 500);
+              }, 1000);
             },
             error: err => {
               console.log(err);
@@ -172,9 +180,80 @@ export class MainPageComponent implements OnInit{
           })
       },
       error : error => {
-        console.log(error)
+        console.log(error);
+        this.notificationService.createNotification(error.error.errorMessage);
       }
     })
+  }
+
+  public modify() : void {
+    const now = new Date();
+    const metadata = new Map();
+    let hasUploadedFile = false;
+    if(this.uploadedFileForModification != null) {
+      metadata.set("file_name",this.uploadedFileForModification.name);
+      metadata.set("type",this.uploadedFileForModification.type);
+      metadata.set("size",this.uploadedFileForModification.size);
+    }
+    else {
+      metadata.set("file_name", this.selectedFileInfo['file_name']);
+      metadata.set("type", this.selectedFileInfo['type']);
+      metadata.set("size", this.selectedFileInfo['size']);
+    }
+    metadata.set("creation_date",this.selectedFileInfo['creation_date']);
+    metadata.set("last_modification_date",now);
+    metadata.set("partial_path", this.selectedFileInfo["partial_path"]);
+
+    this.tags.forEach((tag) => {
+      metadata.set(tag.name,tag.value);
+    });
+    if(this.uploadedFileForModification == null) {
+      this.fileService.modifyMetadataOnly(Object.fromEntries(metadata.entries())).subscribe( {
+        next : response => {
+          if(response.hasOwnProperty('errorMessage')) {
+            console.log(response)
+            this.notificationService.createNotification(response.errorMessage);
+            return;
+          }
+          else {
+            this.notificationService.createNotification(response);
+            setTimeout(() => {
+              window.location.reload();
+            }, 1000);
+          }
+        },
+        error : error => {
+          console.log(error)
+          this.notificationService.createNotification(error.error.errorMessage);
+        }
+      })
+    }
+    else {
+      this.fileService.requestFullModification(Object.fromEntries(metadata.entries())).subscribe( {
+        next : response => {
+          if(response.hasOwnProperty('errorMessage')) {
+            this.notificationService.createNotification(response.errorMessage);
+            return;
+          }
+          const uploadInfo = JSON.parse(JSON.stringify(response));
+          this.fileService.modifyFile(<File>this.uploadedFileForModification,uploadInfo).subscribe({
+            next: () => {
+              setTimeout(() => {
+                window.location.reload();
+              }, 1000);
+            },
+            error: err => {
+              console.log(err);
+              this.notificationService.createNotification(err.error.errorMessage);
+            }
+          })
+        },
+        error : error => {
+          console.log(error)
+          this.notificationService.createNotification(error.error.errorMessage)
+        }
+      })
+    }
   }
 
   private generateFormData(uploadInfo: any) : FormData {
