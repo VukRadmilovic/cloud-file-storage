@@ -283,4 +283,8 @@ def delete_item(event, context):
     return {
         'statusCode': 200,
         'body': json.dumps('File successfully deleted!')
+<<<<<<< HEAD
     }
+=======
+    }
+>>>>>>> 1dc2d6c799d37c2f9196bb14b287b8b35f2d4305

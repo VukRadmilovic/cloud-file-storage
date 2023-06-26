@@ -386,4 +386,3 @@ functions:
             statusCodes:
               200:
                 pattern: ''
-  
