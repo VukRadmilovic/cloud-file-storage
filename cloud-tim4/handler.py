@@ -163,7 +163,7 @@ def get_file_metadata(event, context):
     if username != owner_username:
         return {
                 'statusCode': 400,
-                'body': json.dumps('Cannot view files that are not your own!')
+                'body': json.dumps('Bad request: Cannot view files that are not your own!')
                 }
     dynamodb = boto3.client('dynamodb')
     key = {"partial_path": {"S" : file_path} }
@@ -171,7 +171,7 @@ def get_file_metadata(event, context):
     if file_info.get("Item") is None:
         return {
                 'statusCode': 404,
-                'body': json.dumps('The file does not exist!')
+                'body': json.dumps('Not found: The file does not exist!')
                 }
     file_info = file_info['Item']
     item = {}
@@ -256,3 +256,31 @@ def full_modify_item(event, context):
         
     else:
         raise Exception('Not found: The file does not exist!')
+    
+def delete_item(event, context):
+    username = event['query']['username']
+    file_path = event['query']['file_path']
+    
+    owner_username = file_path.split('/')[0]
+    if username != owner_username:
+        return {
+                'statusCode': 400,
+                'body': json.dumps('Bad request: Cannot view files that are not your own!')
+                }
+                
+    dynamodb = boto3.client('dynamodb')
+    key = {"partial_path": {"S" : file_path}}
+    s3 = boto3.client('s3')
+    bucket_name = 'najbolji-bucket-ikada'
+    file_info = dynamodb.get_item(TableName='s-metadata', Key=key)
+    if file_info.get("Item") is None:
+        return {
+                'statusCode': 404,
+                'body': json.dumps('Not found: The file does not exist!')
+                }
+    s3.delete_object(Bucket=bucket_name, Key=file_path)
+    dynamodb.delete_item(TableName='s-metadata', Key=key)
+    return {
+        'statusCode': 200,
+        'body': json.dumps('File successfully deleted!')
+    }
