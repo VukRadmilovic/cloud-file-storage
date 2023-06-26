@@ -54,4 +54,16 @@ export class FilesService {
     const url = baseURL + "download-file?username=" + this.userService.getLoggedUsername() + "&file_path=" + filePath;
     return this.http.get(url);
   }
+
+  createAlbum(current_path: string) {
+    current_path = this.userService.getLoggedUsername() + current_path;
+    const url = baseURL + "create-album?username=" + this.userService.getLoggedUsername() + "&file_path=" + current_path;
+    return this.http.get(url);
+  }
+
+  deleteAlbum(current_path: string) : Observable<string> {
+    current_path = this.userService.getLoggedUsername() + current_path;
+    const url = baseURL + "delete-album?username=" + this.userService.getLoggedUsername() + "&file_path=" + current_path;
+    return this.http.delete<string>(url);
+  }
 }

@@ -457,3 +457,40 @@ def add_user_trigger(event, context):
     table = dynamodb.Table('users')
     table.put_item(Item=item)
     return event
+
+def create_album(event, context):
+    username = event['query']['username']
+    file_path = event['query']['file_path']
+    
+    owner_username = file_path.split('/')[0]
+    if username != owner_username:
+        return 'Bad request: Cannot create albums inside albums which are not yours!'
+
+    s3 = boto3.client('s3')
+    return s3.put_object(Bucket="najbolji-bucket-ikada", Key=file_path + "/")
+
+def delete_album(event, context):
+    username = event['query']['username']
+    file_path = event['query']['file_path']
+    
+    owner_username = file_path.split('/')[0]
+    if username != owner_username:
+        return 'Bad request: Cannot delete albums which are not your own!'
+    
+    if file_path == owner_username + "/":
+        return 'Bad request: Cannot delete root album!'
+    
+    s3 = boto3.resource('s3')
+    bucket = s3.Bucket('najbolji-bucket-ikada')
+    bucket.objects.filter(Prefix=file_path).delete()
+    
+    dynamodb = boto3.resource('dynamodb')
+    table = dynamodb.Table('s-metadata')
+
+    response = table.scan(
+        FilterExpression=boto3.dynamodb.conditions.Key('partial_path').begins_with(file_path)
+    )
+
+    with table.batch_writer() as batch:
+        for item in response['Items']:
+            batch.delete_item(Key={'partial_path': item['partial_path']})

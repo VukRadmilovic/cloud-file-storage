@@ -33,6 +33,7 @@ export class MainPageComponent implements OnInit{
     tagName: new FormControl('',[Validators.required]),
     tagValue: new FormControl( '',[Validators.required]),
   })
+  albumName: string = "";
 
   public ngOnInit() {
     const token = window.location.href.split("#")[1].split("=")[1].split("&")[0];
@@ -126,7 +127,7 @@ export class MainPageComponent implements OnInit{
     if(this.current_path == "/") return;
     this.thumbnails = []
     const tokens = this.current_path.split('/')
-    this.current_path = "/" + tokens.slice(0,tokens.length - 2).join('/')
+    this.current_path = tokens.slice(0,tokens.length - 2).join('/') + '/'
     let path = ""
     if(this.current_path == "/") path = '0'
     else path = this.current_path.substring(1,this.current_path.length-1)
@@ -340,6 +341,36 @@ export class MainPageComponent implements OnInit{
     this.fileService.downloadFile(this.selectedFileInfo['partial_path']).subscribe({
       next: url => {
         window.open(url);
+      },
+      error: err => {
+        console.log(err);
+      }
+    })
+  }
+
+  createAlbum() {
+    this.fileService.createAlbum(this.current_path + this.albumName).subscribe({
+      next: response => {
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
+      },
+      error: err => {
+        console.log(err);
+      }
+    })
+  }
+
+  deleteAlbum() {
+    this.fileService.deleteAlbum(this.current_path).subscribe({
+      next: response => {
+        if (response != null && response.includes("Bad")) {
+          this.notificationService.createNotification(response);
+        } else {
+          setTimeout(() => {
+            window.location.reload();
+          }, 1500);
+        }
       },
       error: err => {
         console.log(err);

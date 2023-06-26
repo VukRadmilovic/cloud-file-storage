@@ -20,6 +20,18 @@
     <button mat-mini-fab color="primary" (click)="goBack()" aria-label="back" style="position: absolute;bottom: 30px;left: 20px">
       <mat-icon>arrow_back_ios</mat-icon>
     </button>
+    <div class="padding width-100">
+      <mat-form-field class="margin-right">
+        <mat-label>Album name</mat-label>
+        <input matInput [(ngModel)]="albumName" placeholder="Album name">
+      </mat-form-field>
+      <button mat-raised-button color="primary" (click)="createAlbum()" aria-label="create album" class="margin-right">
+        Create album
+      </button>
+      <button mat-raised-button color="primary" (click)="deleteAlbum()" aria-label="delete album" class="margin-right">
+        Delete album
+      </button>
+    </div>
   </div>
     <div class="width-50 height-100 upload-footer">
       <br>
