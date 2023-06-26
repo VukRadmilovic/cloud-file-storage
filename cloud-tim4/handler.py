@@ -61,6 +61,28 @@ def s3_trigger(event, context):
                 ':value': {'S': 'yes'}
             }
         )
+
+        email = dynamodb.get_item(TableName='users',Key = {'username': {'S': file_key.split('/')[0]}})
+        email = email['Item']['email']['S']
+        ses_client = boto3.client('ses')
+        ses_client.send_email(
+            Source='2001vuk@gmail.com',
+            Destination={
+                'ToAddresses': [email],
+            },
+            Message={
+                'Subject': {
+                    'Data': 'Actions completed',
+                    'Charset': 'utf-8'
+                },
+                'Body': {
+                    'Text': {
+                        'Data': """You have successfully uploaded a file.\nFile: {file}""".format(file=file_key.split('/')[1]),
+                        'Charset': 'utf-8'
+                    }
+                }
+            }
+        )
     elif event_type == "ObjectCreated:Put":
         try:
             s3_object_key = str(event['Records'][0]['s3']['object']['key']).replace("+", " ")
@@ -91,12 +113,56 @@ def s3_trigger(event, context):
                 TableName=dynamodb_table_name,
                 Item=destination_item
             )
+
+            email = dynamodb.get_item(TableName='users',Key = {'username': {'S': file_key.split('/')[0]}})
+            email = email['Item']['email']['S']
+            ses_client = boto3.client('ses')
+            ses_client.send_email(
+                Source='2001vuk@gmail.com',
+                Destination={
+                    'ToAddresses': [email],
+                },
+                Message={
+                    'Subject': {
+                        'Data': 'Actions completed',
+                        'Charset': 'utf-8'
+                    },
+                    'Body': {
+                        'Text': {
+                            'Data': """You have successfully modified a file.\nFile: {file}""".format(file=file_key.split('/')[1]),
+                            'Charset': 'utf-8'
+                        }
+                    }
+                }
+            )
         except Exception as e:
             print('Error:', e)
             return {
                 'statusCode': 500,
                 'body': 'Error occurred'
             }
+
+def generate_presigned_get(object_key, expiration=3600):
+    s3 = boto3.client('s3')
+    try:
+        response = s3.generate_presigned_url('get_object',
+                                                    Params={'Bucket': "najbolji-bucket-ikada",
+                                                            'Key': object_key},
+                                                    ExpiresIn=expiration)
+    except:
+        return None
+
+    return response
+
+def download_file(event, context):
+    username = event['query']['username']
+    file_path = event['query']['file_path']
+    
+    owner_username = file_path.split('/')[0]
+    if username != owner_username:
+        return 'Bad request: Cannot download files that are not your own!'
+    
+    return generate_presigned_get(file_path)
 
 def generate_s3_url(event, context):
     name = event['file_name']
@@ -248,6 +314,27 @@ def modify_metadata(event,context):
                 continue
             item[key] = {'S' : value}
         dynamodb.put_item(TableName='s-metadata', Item=item)
+        email = dynamodb.get_item(TableName='users',Key = {'username': {'S': username}})
+        email = email['Item']['email']['S']
+        ses_client = boto3.client('ses')
+        ses_client.send_email(
+            Source='2001vuk@gmail.com',
+            Destination={
+                'ToAddresses': [email],
+            },
+            Message={
+                'Subject': {
+                    'Data': 'Actions completed',
+                    'Charset': 'utf-8'
+                },
+                'Body': {
+                    'Text': {
+                        'Data': """You have successfully modified a file.\nFile: {file}""".format(file=file_path.split('/')[1]),
+                        'Charset': 'utf-8'
+                    }
+                }
+            }
+        )
         return {
             'statusCode': 200,
             'body': json.dumps('Successfully modified the file!')
@@ -319,7 +406,40 @@ def delete_item(event, context):
                 }
     s3.delete_object(Bucket=bucket_name, Key=file_path)
     dynamodb.delete_item(TableName='s-metadata', Key=key)
+    email = dynamodb.get_item(TableName='users',Key = {'username': {'S': username}})
+    email = email['Item']['email']['S']
+    ses_client = boto3.client('ses')
+    ses_client.send_email(
+        Source='2001vuk@gmail.com',
+        Destination={
+            'ToAddresses': [email],
+        },
+        Message={
+            'Subject': {
+                'Data': 'Actions completed',
+                'Charset': 'utf-8'
+            },
+            'Body': {
+                'Text': {
+                    'Data': """You have successfully deleted a file.\nFile: {file}""".format(file=file_path.split('/')[1]),
+                    'Charset': 'utf-8'
+                }
+            }
+        }
+    )
     return {
         'statusCode': 200,
         'body': json.dumps('File successfully deleted!')
     }
+
+def add_user_trigger(event, context):
+    username = event['userName']
+    email = event['request']['userAttributes']['email']
+    dynamodb = boto3.resource('dynamodb')
+    item = {
+        "username" : username,
+        "email": email
+    }
+    table = dynamodb.Table('users')
+    table.put_item(Item=item)
+    return event

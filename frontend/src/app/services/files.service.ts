@@ -50,4 +50,8 @@ export class FilesService {
     return this.http.delete(baseURL + "delete-item?username=" + this.userService.getLoggedUsername() + "&file_path=" + file_path);
   }
 
+  downloadFile(filePath: string): Observable<any> {
+    const url = baseURL + "download-file?username=" + this.userService.getLoggedUsername() + "&file_path=" + filePath;
+    return this.http.get(url);
+  }
 }

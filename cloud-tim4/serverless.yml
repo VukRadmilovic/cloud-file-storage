@@ -386,3 +386,49 @@ functions:
             statusCodes:
               200:
                 pattern: ''
+  cognito-signup-function:
+    handler: handler.add_user_trigger
+    role: arn:aws:iam::547365780125:role/najbolja-lambda-rola-ikada
+    events:
+      - cognitoUserPool:
+          pool: 's-najbolji-user-pool-ikada'
+          trigger: PostConfirmation
+          existing: true
+  download-file:
+    handler: handler.download_file
+    role: arn:aws:iam::547365780125:role/najbolja-lambda-rola-ikada
+    events:
+        - http:
+            path: download-file
+            method: get
+            integration: lambda
+            cors: true
+            authorizer:
+              name: CognitoAuthorizer
+              type: COGNITO_USER_POOLS
+              arn:
+                Fn::GetAtt: 
+                  - BestUserPool
+                  - Arn
+            response:
+              statusCodes:
+                200:
+                  pattern: ''
+                400:
+                  pattern: 'Bad request: .*'
+                404:
+                  pattern: 'Not found: .*'
+            request:
+              parameters:
+                querystrings:
+                  username: true
+                  file_path: true
+        - http:
+            path: download-file
+            method: options
+            integration: mock
+            cors: true
+            response:
+              statusCodes:
+                200:
+                  pattern: ''

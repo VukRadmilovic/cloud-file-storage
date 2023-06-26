@@ -279,4 +279,15 @@ export class MainPageComponent implements OnInit{
     formData.append("file",this.uploadedFile,this.uploadedFile.name);
     return formData;
   }
+
+  download() {
+    this.fileService.downloadFile(this.selectedFileInfo['partial_path']).subscribe({
+      next: url => {
+        window.open(url);
+      },
+      error: err => {
+        console.log(err);
+      }
+    })
+  }
 }
