@@ -124,6 +124,7 @@ export class MainPageComponent implements OnInit{
 
   public goBack() : void {
     if(this.current_path == "/") return;
+    this.thumbnails = []
     const tokens = this.current_path.split('/')
     this.current_path = "/" + tokens.slice(0,tokens.length - 2).join('/')
     let path = ""
