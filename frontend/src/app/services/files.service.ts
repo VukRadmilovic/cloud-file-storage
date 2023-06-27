@@ -66,4 +66,18 @@ export class FilesService {
     const url = baseURL + "delete-album?username=" + this.userService.getLoggedUsername() + "&file_path=" + current_path;
     return this.http.delete<string>(url);
   }
+
+  copyFile(fileToCopy: string, pathToCopyTo: string) : Observable<string> {
+    const fileName = fileToCopy.split("/").pop();
+    pathToCopyTo = this.userService.getLoggedUsername() + pathToCopyTo + fileName;
+    const url = baseURL + "copy-file?username=" + this.userService.getLoggedUsername() + "&source_path=" + fileToCopy + "&destination_path=" + pathToCopyTo;
+    return this.http.put<string>(url, {});
+  }
+
+  moveFile(fileToMove: string, pathToMoveTo: string) : Observable<string> {
+    const fileName = fileToMove.split("/").pop();
+    pathToMoveTo = this.userService.getLoggedUsername() + pathToMoveTo + fileName
+    const url = baseURL + "move-file?username=" + this.userService.getLoggedUsername() + "&source_path=" + fileToMove + "&destination_path=" + pathToMoveTo;
+    return this.http.put<string>(url, {});
+  }
 }

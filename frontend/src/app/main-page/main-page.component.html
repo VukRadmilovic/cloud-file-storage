@@ -21,6 +21,17 @@
       <mat-icon>arrow_back_ios</mat-icon>
     </button>
     <div class="padding width-100">
+      <button mat-raised-button color="primary" (click)="copy()" aria-label="copy" class="margin-right">
+        Copy
+      </button>
+      <button mat-raised-button color="primary" (click)="move()" aria-label="cut" class="margin-right">
+        Cut
+      </button>
+      <button mat-raised-button color="primary" (click)="paste()" aria-label="paste" class="margin-right" [disabled]="!enablePaste">
+        Paste
+      </button>
+    </div>
+    <div class="padding width-100">
       <mat-form-field class="margin-right">
         <mat-label>Album name</mat-label>
         <input matInput [(ngModel)]="albumName" placeholder="Album name">

@@ -17,6 +17,8 @@ export class MainPageComponent implements OnInit{
   files! : FileBasicInfo[];
   tags : Tag[] = [];
   current_path : string =  "/";
+  fileForMoveOrCopy: string = "";
+  fileBeingCopied: boolean | undefined = undefined;
   uploadedFile!: File;
   uploadedFileForModification : File | null = null;
   selectedFileInfo! : any;
@@ -34,6 +36,7 @@ export class MainPageComponent implements OnInit{
     tagValue: new FormControl( '',[Validators.required]),
   })
   albumName: string = "";
+  enablePaste:boolean = false;
 
   public ngOnInit() {
     const token = window.location.href.split("#")[1].split("=")[1].split("&")[0];
@@ -376,5 +379,60 @@ export class MainPageComponent implements OnInit{
         console.log(err);
       }
     })
+  }
+
+  copy() {
+    if (this.selectedFileInfo == null) {
+      return;
+    }
+    this.fileForMoveOrCopy = this.selectedFileInfo["partial_path"];
+    this.fileBeingCopied = true;
+    this.enablePaste = true;
+  }
+
+  move() {
+    if (this.selectedFileInfo == null) {
+      return;
+    }
+    this.fileForMoveOrCopy = this.selectedFileInfo["partial_path"];
+    this.fileBeingCopied = false;
+    this.enablePaste = true;
+  }
+
+  paste() {
+    if (this.fileBeingCopied === true) {
+      this.fileService.copyFile(this.fileForMoveOrCopy, this.current_path).subscribe({
+        next: response => {
+          if (response != null && response.includes("Bad")) {
+            this.notificationService.createNotification(response);
+          } else {
+            setTimeout(() => {
+              window.location.reload();
+            }, 1500);
+          }
+        },
+        error: err => {
+          console.log(err);
+        }
+      })
+    } else if (this.fileBeingCopied === false) {
+      this.fileService.moveFile(this.fileForMoveOrCopy, this.current_path).subscribe({
+        next: response => {
+          if (response != null && response.includes("Bad")) {
+            this.notificationService.createNotification(response);
+          } else {
+            setTimeout(() => {
+              window.location.reload();
+            }, 1500);
+          }
+        },
+        error: err => {
+          console.log(err);
+        }
+      })
+    }
+    this.fileForMoveOrCopy = "";
+    this.fileBeingCopied = undefined;
+    this.enablePaste = false;
   }
 }

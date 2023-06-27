@@ -494,3 +494,57 @@ def delete_album(event, context):
     with table.batch_writer() as batch:
         for item in response['Items']:
             batch.delete_item(Key={'partial_path': item['partial_path']})
+
+def copy_file(event, context):
+    username = event['query']['username']
+    source_path = event['query']['source_path']
+    destination_path = event['query']['destination_path']
+    
+    owner_username1 = source_path.split('/')[0]
+    owner_username2 = destination_path.split('/')[0]
+    if username != owner_username1 or username != owner_username2:
+        return 'Bad request: Cannot copy files which are not your own or to foreign folders!'
+
+    copy(source_path, destination_path)
+
+def copy(source_path, destination_path, delete=False):
+    s3 = boto3.resource('s3')
+    copy_source = {
+        'Bucket': 'najbolji-bucket-ikada',
+        'Key': source_path
+        }
+    bucket = s3.Bucket('najbolji-bucket-ikada')
+    bucket.copy(copy_source, destination_path)
+
+    dynamodb = boto3.resource('dynamodb')
+    table = dynamodb.Table('s-metadata')
+
+    response = table.get_item(Key={'partial_path': source_path})
+    item = response['Item']
+    
+    new_item = {**item, 'partial_path': destination_path}
+    table.put_item(Item=new_item)
+
+    if delete:
+        s3 = boto3.client('s3')
+        dynamodb = boto3.client('dynamodb')
+
+        s3.delete_object(Bucket = 'najbolji-bucket-ikada', Key = source_path)
+        dynamodb.delete_item(
+                TableName='s-metadata',
+                Key={
+                    'partial_path': {'S': source_path}
+                }
+            )
+
+def move_file(event, context):
+    username = event['query']['username']
+    source_path = event['query']['source_path']
+    destination_path = event['query']['destination_path']
+    
+    owner_username1 = source_path.split('/')[0]
+    owner_username2 = destination_path.split('/')[0]
+    if username != owner_username1 or username != owner_username2:
+        return 'Bad request: Cannot move files which are not your own or to foreign folders!'
+
+    copy(source_path, destination_path, True)

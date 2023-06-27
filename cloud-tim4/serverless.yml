@@ -508,3 +508,81 @@ functions:
                 statusCodes:
                   200:
                     pattern: ''
+  copy-file:
+      handler: handler.copy_file
+      role: arn:aws:iam::547365780125:role/najbolja-lambda-rola-ikada
+      events:
+          - http:
+              path: copy-file
+              method: put
+              integration: lambda
+              cors: true
+              authorizer:
+                name: CognitoAuthorizer
+                type: COGNITO_USER_POOLS
+                arn:
+                  Fn::GetAtt: 
+                    - BestUserPool
+                    - Arn
+              response:
+                statusCodes:
+                  200:
+                    pattern: ''
+                  400:
+                    pattern: 'Bad request: .*'
+                  404:
+                    pattern: 'Not found: .*'
+              request:
+                parameters:
+                  querystrings:
+                    username: true
+                    source_path: true
+                    destination_path: true
+          - http:
+              path: copy-file
+              method: options
+              integration: mock
+              cors: true
+              response:
+                statusCodes:
+                  200:
+                    pattern: ''
+  move-file:
+      handler: handler.move_file
+      role: arn:aws:iam::547365780125:role/najbolja-lambda-rola-ikada
+      events:
+          - http:
+              path: move-file
+              method: put
+              integration: lambda
+              cors: true
+              authorizer:
+                name: CognitoAuthorizer
+                type: COGNITO_USER_POOLS
+                arn:
+                  Fn::GetAtt: 
+                    - BestUserPool
+                    - Arn
+              response:
+                statusCodes:
+                  200:
+                    pattern: ''
+                  400:
+                    pattern: 'Bad request: .*'
+                  404:
+                    pattern: 'Not found: .*'
+              request:
+                parameters:
+                  querystrings:
+                    username: true
+                    source_path: true
+                    destination_path: true
+          - http:
+              path: move-file
+              method: options
+              integration: mock
+              cors: true
+              response:
+                statusCodes:
+                  200:
+                    pattern: ''
