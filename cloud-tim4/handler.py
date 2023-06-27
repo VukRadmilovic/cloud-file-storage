@@ -62,27 +62,27 @@ def s3_trigger(event, context):
             }
         )
 
-        # email = dynamodb.get_item(TableName='users',Key = {'username': {'S': file_key.split('/')[0]}})
-        # email = email['Item']['email']['S']
-        # ses_client = boto3.client('ses')
-        # ses_client.send_email(
-        #     Source='2001vuk@gmail.com',
-        #     Destination={
-        #         'ToAddresses': [email],
-        #     },
-        #     Message={
-        #         'Subject': {
-        #             'Data': 'Actions completed',
-        #             'Charset': 'utf-8'
-        #         },
-        #         'Body': {
-        #             'Text': {
-        #                 'Data': """You have successfully uploaded a file.\nFile: {file}""".format(file=file_key.split('/')[1]),
-        #                 'Charset': 'utf-8'
-        #             }
-        #         }
-        #     }
-        # )
+        email = dynamodb.get_item(TableName='users',Key = {'username': {'S': file_key.split('/')[0]}})
+        email = email['Item']['email']['S']
+        ses_client = boto3.client('ses')
+        ses_client.send_email(
+            Source='2001vuk@gmail.com',
+            Destination={
+                'ToAddresses': [email],
+            },
+            Message={
+                'Subject': {
+                    'Data': 'Actions completed',
+                    'Charset': 'utf-8'
+                },
+                'Body': {
+                    'Text': {
+                        'Data': """You have successfully uploaded a file.\nFile: {file}""".format(file=file_key.split('/')[-1]),
+                        'Charset': 'utf-8'
+                    }
+                }
+            }
+        )
     elif event_type == "ObjectCreated:Put":
         try:
             s3_object_key = str(event['Records'][0]['s3']['object']['key']).replace("+", " ")
@@ -114,27 +114,27 @@ def s3_trigger(event, context):
                 Item=destination_item
             )
 
-            # email = dynamodb.get_item(TableName='users',Key = {'username': {'S': file_key.split('/')[0]}})
-            # email = email['Item']['email']['S']
-            # ses_client = boto3.client('ses')
-            # ses_client.send_email(
-            #     Source='2001vuk@gmail.com',
-            #     Destination={
-            #         'ToAddresses': [email],
-            #     },
-            #     Message={
-            #         'Subject': {
-            #             'Data': 'Actions completed',
-            #             'Charset': 'utf-8'
-            #         },
-            #         'Body': {
-            #             'Text': {
-            #                 'Data': """You have successfully modified a file.\nFile: {file}""".format(file=file_key.split('/')[1]),
-            #                 'Charset': 'utf-8'
-            #             }
-            #         }
-            #     }
-            # )
+            email = dynamodb.get_item(TableName='users',Key = {'username': {'S': file_key.split('/')[0]}})
+            email = email['Item']['email']['S']
+            ses_client = boto3.client('ses')
+            ses_client.send_email(
+                Source='2001vuk@gmail.com',
+                Destination={
+                    'ToAddresses': [email],
+                },
+                Message={
+                    'Subject': {
+                        'Data': 'Actions completed',
+                        'Charset': 'utf-8'
+                    },
+                    'Body': {
+                        'Text': {
+                            'Data': """You have successfully modified a file.\nFile: {file}""".format(file=file_key.split('/')[-1]),
+                            'Charset': 'utf-8'
+                        }
+                    }
+                }
+            )
         except Exception as e:
             print('Error:', e)
             return {
@@ -328,27 +328,27 @@ def modify_metadata(event,context):
                 continue
             item[key] = {'S' : value}
         dynamodb.put_item(TableName='s-metadata', Item=item)
-        # email = dynamodb.get_item(TableName='users',Key = {'username': {'S': username}})
-        # email = email['Item']['email']['S']
-        # ses_client = boto3.client('ses')
-        # ses_client.send_email(
-        #     Source='2001vuk@gmail.com',
-        #     Destination={
-        #         'ToAddresses': [email],
-        #     },
-        #     Message={
-        #         'Subject': {
-        #             'Data': 'Actions completed',
-        #             'Charset': 'utf-8'
-        #         },
-        #         'Body': {
-        #             'Text': {
-        #                 'Data': """You have successfully modified a file.\nFile: {file}""".format(file=file_path.split('/')[1]),
-        #                 'Charset': 'utf-8'
-        #             }
-        #         }
-        #     }
-        # )
+        email = dynamodb.get_item(TableName='users',Key = {'username': {'S': username}})
+        email = email['Item']['email']['S']
+        ses_client = boto3.client('ses')
+        ses_client.send_email(
+            Source='2001vuk@gmail.com',
+            Destination={
+                'ToAddresses': [email],
+            },
+            Message={
+                'Subject': {
+                    'Data': 'Actions completed',
+                    'Charset': 'utf-8'
+                },
+                'Body': {
+                    'Text': {
+                        'Data': """You have successfully modified a file.\nFile: {file}""".format(file=file_path.split('/')[-1]),
+                        'Charset': 'utf-8'
+                    }
+                }
+            }
+        )
         return {
             'statusCode': 200,
             'body': json.dumps('Successfully modified the file!')
@@ -420,27 +420,27 @@ def delete_item(event, context):
                 }
     s3.delete_object(Bucket=bucket_name, Key=file_path)
     dynamodb.delete_item(TableName='s-metadata', Key=key)
-    # email = dynamodb.get_item(TableName='users',Key = {'username': {'S': username}})
-    # email = email['Item']['email']['S']
-    # ses_client = boto3.client('ses')
-    # ses_client.send_email(
-    #     Source='2001vuk@gmail.com',
-    #     Destination={
-    #         'ToAddresses': [email],
-    #     },
-    #     Message={
-    #         'Subject': {
-    #             'Data': 'Actions completed',
-    #             'Charset': 'utf-8'
-    #         },
-    #         'Body': {
-    #             'Text': {
-    #                 'Data': """You have successfully deleted a file.\nFile: {file}""".format(file=file_path.split('/')[1]),
-    #                 'Charset': 'utf-8'
-    #             }
-    #         }
-    #     }
-    # )
+    email = dynamodb.get_item(TableName='users',Key = {'username': {'S': username}})
+    email = email['Item']['email']['S']
+    ses_client = boto3.client('ses')
+    ses_client.send_email(
+        Source='2001vuk@gmail.com',
+        Destination={
+            'ToAddresses': [email],
+        },
+        Message={
+            'Subject': {
+                'Data': 'Actions completed',
+                'Charset': 'utf-8'
+            },
+            'Body': {
+                'Text': {
+                    'Data': """You have successfully deleted a file.\nFile: {file}""".format(file=file_path.split('/')[-1]),
+                    'Charset': 'utf-8'
+                }
+            }
+        }
+    )
     return {
         'statusCode': 200,
         'body': json.dumps('File successfully deleted!')
@@ -507,6 +507,29 @@ def copy_file(event, context):
 
     copy(source_path, destination_path)
 
+    dynamodb = boto3.client('dynamodb')
+    email = dynamodb.get_item(TableName='users',Key = {'username': {'S': source_path.split('/')[0]}})
+    email = email['Item']['email']['S']
+    ses_client = boto3.client('ses')
+    ses_client.send_email(
+        Source='2001vuk@gmail.com',
+        Destination={
+            'ToAddresses': [email],
+        },
+        Message={
+            'Subject': {
+                'Data': 'Actions completed',
+                'Charset': 'utf-8'
+            },
+            'Body': {
+                'Text': {
+                    'Data': """You have successfully copied a file.\nFile: {file}""".format(file=source_path.split('/')[-1]),
+                    'Charset': 'utf-8'
+                }
+            }
+        }
+    )
+
 def copy(source_path, destination_path, delete=False):
     s3 = boto3.resource('s3')
     copy_source = {
@@ -548,3 +571,26 @@ def move_file(event, context):
         return 'Bad request: Cannot move files which are not your own or to foreign folders!'
 
     copy(source_path, destination_path, True)
+
+    dynamodb = boto3.client('dynamodb')
+    email = dynamodb.get_item(TableName='users',Key = {'username': {'S': source_path.split('/')[0]}})
+    email = email['Item']['email']['S']
+    ses_client = boto3.client('ses')
+    ses_client.send_email(
+        Source='2001vuk@gmail.com',
+        Destination={
+            'ToAddresses': [email],
+        },
+        Message={
+            'Subject': {
+                'Data': 'Actions completed',
+                'Charset': 'utf-8'
+            },
+            'Body': {
+                'Text': {
+                    'Data': """You have successfully moved a file.\nFile: {file}""".format(file=source_path.split('/')[-1]),
+                    'Charset': 'utf-8'
+                }
+            }
+        }
+    )
