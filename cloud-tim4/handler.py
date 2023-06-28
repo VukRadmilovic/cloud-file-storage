@@ -235,6 +235,8 @@ def get_user_shared_data(event, context):
 
     table = dynamodb.Table('s-metadata')
     for tempItem in response['Items']:
+        if(tempItem['sharedTo'] != email):
+            continue
         temp = table.get_item(Key={'partial_path': tempItem['partial_path']})
         tempItem = temp['Item']
         for object_summary in my_bucket.objects.filter(Prefix=tempItem['partial_path']):
@@ -568,6 +570,35 @@ def delete_album(event, context):
 def family_album_function(event, context):
     user = event['query']['user']
     family = event['query']['family']
+
+    ses_client = boto3.client('ses')
+    ses_client.send_email(
+            Source='2001vuk@gmail.com',
+            Destination={
+                'ToAddresses': [family],
+            },
+            Message={
+                'Subject': {
+                    'Data': 'Actions completed',
+                    'Charset': 'utf-8'
+                },
+                'Body': {
+                    'Text': {
+                        'Data': """You have successfully been added as family member""".format(),
+                        'Charset': 'utf-8'
+                    }
+                }
+            }
+        )
+    #dynamodb = boto3.client('dynamodb')
+    #familyItem = {
+    #            "parent": user,
+    #            "child": family,
+    #        }
+    #dynamodb.put_item(
+    #            TableName="family",
+    #            Item = familyItem
+    #        )
 
     dynamodb = boto3.resource('dynamodb')
     tableMeta = dynamodb.Table('s-metadata')
