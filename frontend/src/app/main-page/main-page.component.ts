@@ -6,6 +6,7 @@ import {FileTypeEnum} from "../model/enums/FileTypeEnum";
 import {FormControl, FormGroup, Validators} from "@angular/forms";
 import {Tag} from "../model/Tag";
 import {NotificationsService} from "../services/notifications.service";
+import {Router} from "@angular/router";
 
 @Component({
   selector: 'app-main-page',
@@ -27,9 +28,10 @@ export class MainPageComponent implements OnInit{
   showFileDetails = false;
   selectedFile! : FileBasicInfo;
   selectedFileThumbnail! : string;
+
   constructor(private userService : UserService,
               private notificationService: NotificationsService,
-              private fileService: FilesService) {}
+              private fileService: FilesService, private router: Router) {}
 
   tagForm = new FormGroup({
     tagName: new FormControl('',[Validators.required]),
@@ -40,18 +42,13 @@ export class MainPageComponent implements OnInit{
   enablePaste:boolean = false;
 
   public ngOnInit() {
-    const token = window.location.href.split("#")[1].split("=")[1].split("&")[0];
-    this.userService.login(token);
+    if(this.userService.getLoggedUsername() == ""){
+      const token = window.location.href.split("#")[1].split("=")[1].split("&")[0];
+      this.userService.login(token);
+    }
     this.fileService.getUserFiles('0').subscribe( result => {
       let objects = JSON.parse(result.toString())
       this.files = objects;
-      const sharedFolder: FileBasicInfo = {
-        file: "Shared",
-        type: FileTypeEnum.FOLDER,
-        date_created : new Date(),
-        url: "shared"
-      }
-      this.files.push(sharedFolder)
       this.files.forEach((file) => {
         const tokens = file.file.split("/");
         file.file = tokens[tokens.length - 1];
@@ -407,7 +404,7 @@ export class MainPageComponent implements OnInit{
   }
 
   seeShared(){
-    
+    this.router.navigateByUrl('/shared')
   }
 
   familyAccount(){

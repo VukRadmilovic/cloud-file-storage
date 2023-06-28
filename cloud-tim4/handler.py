@@ -212,6 +212,76 @@ def generate_s3_url(event, context):
     table.put_item(Item=item)
     return generate_presigned_post(path, 3600)
 
+def get_user_shared_data(event, context):
+    username = event['query']['username']
+    final_list = []
+    items = []
+    s3client = boto3.client('s3')
+    s3bucket = boto3.resource('s3')
+    my_bucket = s3bucket.Bucket('najbolji-bucket-ikada')
+    key = {"partial_path": {"S" : ""} }
+    
+    dynamodbc = boto3.client('dynamodb')
+
+    email = dynamodbc.get_item(TableName='users',Key = {'username': {'S': username}})
+    email = email['Item']['email']['S']
+
+    dynamodb = boto3.resource('dynamodb')
+
+    table = dynamodb.Table('shared')
+    response = table.scan(
+        FilterExpression=boto3.dynamodb.conditions.Key('partial_path').begins_with("")
+    )
+
+    table = dynamodb.Table('s-metadata')
+    for tempItem in response['Items']:
+        temp = table.get_item(Key={'partial_path': tempItem['partial_path']})
+        tempItem = temp['Item']
+        for object_summary in my_bucket.objects.filter(Prefix=tempItem['partial_path']):
+            tokens = object_summary.key.split('.')
+            extension = tokens[len(tokens) - 1]
+            typeArr = [x for x in supported_file_types if extension in x]
+            type = ""
+            if(len(typeArr) == 0):
+                type = "FOLDER"
+                final_list.append({
+                "file":object_summary.key,
+                "type":type,
+                "date_created":None,
+                "url":""
+                })
+                
+            else:
+                type = typeArr[0].split("/")[0].upper()
+            if type != "FOLDER":
+                key['partial_path']["S"] = object_summary.key
+        
+                item = dynamodbc.get_item(TableName='s-metadata', Key=key)['Item']
+                date_created_str = item['creation_date']['S']
+                try:
+                    valid = item['valid']['S']
+                    if valid == 'no':
+                        continue
+                except:
+                    pass
+        
+                date_created = parser.isoparse(date_created_str)
+                path = username + "/" + object_summary.key
+                url = s3client.generate_presigned_url(ClientMethod = 'get_object', Params = { 'Bucket': 'najbolji-bucket-ikada', 'Key': object_summary.key })
+        
+                items.append( {
+                    "file":object_summary.key,
+                    "type":type,
+                    "date_created":date_created,
+                    "url":url
+                })
+
+    items.sort(key=lambda x: x['date_created'], reverse=True)
+    for item in items:
+        item['date_created'] = item['date_created'].strftime("%Y-%m-%d %H:%M:")
+    final_list = final_list + items
+    return json.dumps(final_list)
+
 def get_user_data(event, context):
     username = event['query']['username']
     album = event['query']['album']
@@ -495,6 +565,31 @@ def delete_album(event, context):
         for item in response['Items']:
             batch.delete_item(Key={'partial_path': item['partial_path']})
 
+def family_album_function(event, context):
+    user = event['query']['user']
+    family = event['query']['family']
+
+    dynamodb = boto3.resource('dynamodb')
+    tableMeta = dynamodb.Table('s-metadata')
+    response = tableMeta.scan(
+        FilterExpression=boto3.dynamodb.conditions.Key('partial_path').begins_with(user)
+    )
+
+    table = dynamodb.Table('shared')
+    with table.batch_writer() as batch:
+        for item in response['Items']:
+            tempItem = {
+                "sharedTo": family,
+                "sharedFrom": user,
+                "partial_path": item['partial_path']
+            }
+            batch.put_item(Item=tempItem)
+    return {
+        'statusCode': 200,
+        'body': json.dumps('Family successfully created!')
+    }
+
+
 def share_album_function(event, context):
     sharedFrom = event['query']['sharedFrom']
     file_path = event['query']['file_path']
@@ -512,11 +607,11 @@ def share_album_function(event, context):
     
     table = dynamodb.Table('shared')
     with table.batch_writer() as batch:
-        tempItem = {
-                "sharedTo": sharedTo,
-                "sharedFrom": sharedFrom,
-                "partial_path": file_path
-            }
+        #tempItem = {
+        #        "sharedTo": sharedTo,
+        #        "sharedFrom": sharedFrom,
+        #        "partial_path": file_path
+        #    }
         batch.put_item(Item=tempItem)
         for item in response['Items']:
             tempItem = {
@@ -538,9 +633,6 @@ def stop_share_album_function(event, context):
     owner_username = file_path.split('/')[0]
     if sharedFrom != owner_username:
         return 'Bad request: Cannot delete albums which are not your own!'
-    
-    if file_path == owner_username + "/":
-        return 'Bad request: Cannot delete root album!'
     
     dynamodb = boto3.resource('dynamodb')
     table = dynamodb.Table('s-metadata')

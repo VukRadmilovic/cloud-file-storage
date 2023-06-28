@@ -22,7 +22,7 @@ export class FilesService {
     return this.http.get<FileBasicInfo[]>(baseURL + 'get-user-data?username=' + this.userService.getLoggedUsername() + "&album=" + path);
   }
   public getUserSharedFiles(path: string) : Observable<FileBasicInfo[]> {
-    return this.http.get<FileBasicInfo[]>(baseURL + 'get-user-shared-data?username=' + this.userService.getLoggedUsername() + "&album=" + path);
+    return this.http.get<FileBasicInfo[]>(baseURL + 'get-user-shared-data?username=' + this.userService.getLoggedUsername());
   }
 
   public requestUpload(metadata : any) : Observable<any> {

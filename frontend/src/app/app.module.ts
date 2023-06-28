@@ -31,6 +31,7 @@ import { NavigationComponent } from './navigation/navigation.component';
 import {MatGridListModule} from "@angular/material/grid-list";
 import {MatChipsModule} from "@angular/material/chips";
 import {MatIconModule} from "@angular/material/icon";
+import {SharedComponent} from "./shared/shared-component";
 
 @NgModule({
   declarations: [
@@ -38,6 +39,7 @@ import {MatIconModule} from "@angular/material/icon";
     MainPageComponent,
     LoginComponent,
     NavigationComponent,
+    SharedComponent,
   ],
   imports: [
     BrowserModule,

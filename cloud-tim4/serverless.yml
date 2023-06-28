@@ -61,6 +61,19 @@ resources:
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
+    BestDDBSFamilyTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: family
+        AttributeDefinitions:
+          - AttributeName: parent
+            AttributeType: S
+        KeySchema:
+          - AttributeName: parent
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
     BestDDBSharedTable:
       Type: AWS::DynamoDB::Table
       Properties:
@@ -219,6 +232,40 @@ functions:
             statusCodes:
               200:
                 pattern: ''
+  get-user-shared-data:
+    handler: handler.get_user_shared_data
+    role: arn:aws:iam::547365780125:role/najbolja-lambda-rola-ikada
+    events:
+      - http:
+          path: get-user-shared-data
+          method: get
+          integration: lambda
+          cors: true
+          authorizer:
+            name: CognitoAuthorizer
+            type: COGNITO_USER_POOLS
+            arn:
+              Fn::GetAtt: 
+                - BestUserPool
+                - Arn
+          response:
+            statusCodes:
+              200:
+                pattern: ''
+          request:
+            parameters:
+              querystrings:
+                username: true
+      - http:
+          path: get-user-data
+          method: options
+          integration: mock
+          cors: true
+          response:
+            statusCodes:
+              200:
+                pattern: ''
+
   get-file-details:
     handler: handler.get_file_metadata
     role: arn:aws:iam::547365780125:role/najbolja-lambda-rola-ikada
@@ -392,6 +439,44 @@ functions:
                 username: true
       - http:
           path: delete-item
+          method: options
+          integration: mock
+          cors: true
+          response:
+            statusCodes:
+              200:
+                pattern: ''
+  family-album-function:
+    handler: handler.family_album_function
+    role: arn:aws:iam::547365780125:role/najbolja-lambda-rola-ikada
+    events:
+      - http:
+          path: family-album
+          method: post
+          integration: lambda
+          cors: true
+          authorizer:
+            name: CognitoAuthorizer
+            type: COGNITO_USER_POOLS
+            arn:
+              Fn::GetAtt: 
+                - BestUserPool
+                - Arn
+          response:
+            statusCodes:
+              200:
+                pattern: ''
+              400:
+                pattern: 'Bad request: .*'
+              404:
+                pattern: 'Not found: .*'
+          request:
+            parameters:
+              querystrings:
+                user: true
+                family: true
+      - http:
+          path: family-album
           method: options
           integration: mock
           cors: true
