@@ -61,6 +61,19 @@ resources:
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
+    BestDDBSharedTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: shared
+        AttributeDefinitions:
+          - AttributeName: partial_path
+            AttributeType: S
+        KeySchema:
+          - AttributeName: partial_path
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
     BestUserPool:
       Type: AWS::Cognito::UserPool
       Properties:
@@ -379,6 +392,85 @@ functions:
                 username: true
       - http:
           path: delete-item
+          method: options
+          integration: mock
+          cors: true
+          response:
+            statusCodes:
+              200:
+                pattern: ''
+  stop-share-album-function:
+    handler: handler.stop_share_album_function
+    role: arn:aws:iam::547365780125:role/najbolja-lambda-rola-ikada
+    events:
+      - http:
+          path: stop-share-album
+          method: delete
+          integration: lambda
+          cors: true
+          authorizer:
+            name: CognitoAuthorizer
+            type: COGNITO_USER_POOLS
+            arn:
+              Fn::GetAtt: 
+                - BestUserPool
+                - Arn
+          response:
+            statusCodes:
+              200:
+                pattern: ''
+              400:
+                pattern: 'Bad request: .*'
+              404:
+                pattern: 'Not found: .*'
+          request:
+            parameters:
+              querystrings:
+                file_path: true
+                sharedFrom: true
+                sharedTo: true
+      - http:
+          path: stop-share-album
+          method: options
+          integration: mock
+          cors: true
+          response:
+            statusCodes:
+              200:
+                pattern: ''
+
+  share-album-function:
+    handler: handler.share_album_function
+    role: arn:aws:iam::547365780125:role/najbolja-lambda-rola-ikada
+    events:
+      - http:
+          path: share-album
+          method: post
+          integration: lambda
+          cors: true
+          authorizer:
+            name: CognitoAuthorizer
+            type: COGNITO_USER_POOLS
+            arn:
+              Fn::GetAtt: 
+                - BestUserPool
+                - Arn
+          response:
+            statusCodes:
+              200:
+                pattern: ''
+              400:
+                pattern: 'Bad request: .*'
+              404:
+                pattern: 'Not found: .*'
+          request:
+            parameters:
+              querystrings:
+                file_path: true
+                sharedFrom: true
+                sharedTo: true
+      - http:
+          path: share-album
           method: options
           integration: mock
           cors: true

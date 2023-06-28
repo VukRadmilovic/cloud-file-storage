@@ -36,11 +36,31 @@
         <mat-label>Album name</mat-label>
         <input matInput [(ngModel)]="albumName" placeholder="Album name">
       </mat-form-field>
+      <mat-form-field class="margin-right">
+        <mat-label>Share User</mat-label>
+        <input matInput [(ngModel)]="shareUser" placeholder="Album name">
+      </mat-form-field>
       <button mat-raised-button color="primary" (click)="createAlbum()" aria-label="create album" class="margin-right">
         Create album
       </button>
       <button mat-raised-button color="primary" (click)="deleteAlbum()" aria-label="delete album" class="margin-right">
         Delete album
+      </button>
+      <button mat-raised-button color="primary" (click)="shareAlbum()" aria-label="delete album" class="margin-right">
+        Share album
+      </button>
+      <button mat-raised-button color="primary" (click)="stopShareAlbum()" aria-label="delete album" class="margin-right">
+        Stop Sharing album
+      </button>
+      <button mat-raised-button color="primary" (click)="stopShareAlbum()" aria-label="delete album" class="margin-right">
+        Stop Sharing album
+      </button>
+      <br>
+      <button mat-raised-button color="primary" (click)="familyAccount()" aria-label="delete album" class="margin-right">
+        Family account
+      </button>
+      <button mat-raised-button color="primary" (click)="seeShared()" aria-label="delete album" class="margin-right">
+        See shared
       </button>
     </div>
   </div>

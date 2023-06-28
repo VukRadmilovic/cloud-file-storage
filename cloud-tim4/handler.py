@@ -495,6 +495,71 @@ def delete_album(event, context):
         for item in response['Items']:
             batch.delete_item(Key={'partial_path': item['partial_path']})
 
+def share_album_function(event, context):
+    sharedFrom = event['query']['sharedFrom']
+    file_path = event['query']['file_path']
+    sharedTo = event['query']['sharedTo']
+    
+    owner_username = file_path.split('/')[0]
+    if sharedFrom != owner_username:
+        return 'Bad request: Cannot share albums which are not your own!'
+
+    dynamodb = boto3.resource('dynamodb')
+    tableMeta = dynamodb.Table('s-metadata')
+    response = tableMeta.scan(
+        FilterExpression=boto3.dynamodb.conditions.Key('partial_path').begins_with(file_path)
+    )
+    
+    table = dynamodb.Table('shared')
+    with table.batch_writer() as batch:
+        tempItem = {
+                "sharedTo": sharedTo,
+                "sharedFrom": sharedFrom,
+                "partial_path": file_path
+            }
+        batch.put_item(Item=tempItem)
+        for item in response['Items']:
+            tempItem = {
+                "sharedTo": sharedTo,
+                "sharedFrom": sharedFrom,
+                "partial_path": item['partial_path']
+            }
+            batch.put_item(Item=tempItem)
+    return {
+        'statusCode': 200,
+        'body': json.dumps('File successfully shared!')
+    }
+
+def stop_share_album_function(event, context):
+    sharedFrom = event['query']['sharedFrom']
+    file_path = event['query']['file_path']
+    sharedTo = event['query']['sharedTo']
+
+    owner_username = file_path.split('/')[0]
+    if sharedFrom != owner_username:
+        return 'Bad request: Cannot delete albums which are not your own!'
+    
+    if file_path == owner_username + "/":
+        return 'Bad request: Cannot delete root album!'
+    
+    dynamodb = boto3.resource('dynamodb')
+    table = dynamodb.Table('s-metadata')
+
+    response = table.scan(
+        FilterExpression=boto3.dynamodb.conditions.Key('partial_path').begins_with(file_path)
+    )
+
+    table = dynamodb.Table('shared')
+    with table.batch_writer() as batch:
+        for item in response['Items']:
+            batch.delete_item(Key={'partial_path': item['partial_path']})
+        batch.delete_item(Key={'partial_path': file_path})
+
+    return {
+        'statusCode': 200,
+        'body': json.dumps('File successfully stoped sharing!')
+    }
+
 def copy_file(event, context):
     username = event['query']['username']
     source_path = event['query']['source_path']

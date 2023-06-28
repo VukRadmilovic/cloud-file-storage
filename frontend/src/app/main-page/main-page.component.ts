@@ -36,6 +36,7 @@ export class MainPageComponent implements OnInit{
     tagValue: new FormControl( '',[Validators.required]),
   })
   albumName: string = "";
+  shareUser: string = "";
   enablePaste:boolean = false;
 
   public ngOnInit() {
@@ -44,6 +45,13 @@ export class MainPageComponent implements OnInit{
     this.fileService.getUserFiles('0').subscribe( result => {
       let objects = JSON.parse(result.toString())
       this.files = objects;
+      const sharedFolder: FileBasicInfo = {
+        file: "Shared",
+        type: FileTypeEnum.FOLDER,
+        date_created : new Date(),
+        url: "shared"
+      }
+      this.files.push(sharedFolder)
       this.files.forEach((file) => {
         const tokens = file.file.split("/");
         file.file = tokens[tokens.length - 1];
@@ -366,6 +374,61 @@ export class MainPageComponent implements OnInit{
 
   deleteAlbum() {
     this.fileService.deleteAlbum(this.current_path).subscribe({
+      next: response => {
+        if (response != null && response.includes("Bad")) {
+          this.notificationService.createNotification(response);
+        } else {
+          setTimeout(() => {
+            window.location.reload();
+          }, 1500);
+        }
+      },
+      error: err => {
+        console.log(err);
+      }
+    })
+  }
+
+  shareAlbum() {
+    this.fileService.shareAlbum(this.current_path, this.shareUser).subscribe({
+      next: response => {
+        if (response != null && response.includes("Bad")) {
+          this.notificationService.createNotification(response);
+        } else {
+          setTimeout(() => {
+            window.location.reload();
+          }, 1500);
+        }
+      },
+      error: err => {
+        console.log(err);
+      }
+    })
+  }
+
+  seeShared(){
+    
+  }
+
+  familyAccount(){
+    this.fileService.family(this.shareUser).subscribe({
+      next: response => {
+        if (response != null && response.includes("Bad")) {
+          this.notificationService.createNotification(response);
+        } else {
+          setTimeout(() => {
+            window.location.reload();
+          }, 1500);
+        }
+      },
+      error: err => {
+        console.log(err);
+      }
+    })
+  }
+
+  stopShareAlbum() {
+    this.fileService.stopShareAlbum(this.current_path, this.shareUser).subscribe({
       next: response => {
         if (response != null && response.includes("Bad")) {
           this.notificationService.createNotification(response);

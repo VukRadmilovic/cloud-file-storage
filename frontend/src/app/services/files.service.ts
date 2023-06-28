@@ -21,6 +21,9 @@ export class FilesService {
   public getUserFiles(path: string) : Observable<FileBasicInfo[]> {
     return this.http.get<FileBasicInfo[]>(baseURL + 'get-user-data?username=' + this.userService.getLoggedUsername() + "&album=" + path);
   }
+  public getUserSharedFiles(path: string) : Observable<FileBasicInfo[]> {
+    return this.http.get<FileBasicInfo[]>(baseURL + 'get-user-shared-data?username=' + this.userService.getLoggedUsername() + "&album=" + path);
+  }
 
   public requestUpload(metadata : any) : Observable<any> {
     return this.http.post<any>(baseURL + "upload-link?username=" + this.userService.getLoggedUsername(), metadata);
@@ -64,6 +67,23 @@ export class FilesService {
   deleteAlbum(current_path: string) : Observable<string> {
     current_path = this.userService.getLoggedUsername() + current_path;
     const url = baseURL + "delete-album?username=" + this.userService.getLoggedUsername() + "&file_path=" + current_path;
+    return this.http.delete<string>(url);
+  }
+
+  public family(shareUser: string) : Observable<any>{
+    const url = baseURL + "family-album?user=" + this.userService.getLoggedUsername() + "&family=" + shareUser;
+    return this.http.post<string>(url, {});
+  }
+
+  shareAlbum(current_path: string, shareTo: string) : Observable<string> {
+    current_path = this.userService.getLoggedUsername() + current_path;
+    const url = baseURL + "share-album?sharedFrom=" + this.userService.getLoggedUsername() + "&file_path=" + current_path + "&sharedTo=" + shareTo;
+    return this.http.post<string>(url, {});
+  }
+
+  stopShareAlbum(current_path: string, shareTo: string) : Observable<string> {
+    current_path = this.userService.getLoggedUsername() + current_path;
+    const url = baseURL + "stop-share-album?sharedFrom=" + this.userService.getLoggedUsername() + "&file_path=" + current_path + "&sharedTo=" + shareTo;
     return this.http.delete<string>(url);
   }
 
