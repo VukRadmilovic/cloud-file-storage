@@ -643,7 +643,7 @@ def share_album_function(event, context):
         #        "sharedFrom": sharedFrom,
         #        "partial_path": file_path
         #    }
-        batch.put_item(Item=tempItem)
+        #batch.put_item(Item=tempItem)
         for item in response['Items']:
             tempItem = {
                 "sharedTo": sharedTo,
