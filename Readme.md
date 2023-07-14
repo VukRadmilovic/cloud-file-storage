@@ -1,17 +1,44 @@
-# Problem konzistencije u sistemu sa S3 i DynamoDB skladištima
+# Cloud file storage and management web app
 
-## Problem
-U okviru našeg sistema, koristimo Amazon S3 za čuvanje sadržaja, dok su dodatne informacije o tom sadržaju čuvane u Amazon DynamoDB tabeli. Međutim, suočili smo se sa problemom konzistencije između ova dva skladišta. Kada korisnik izvrši dodavanje ili izmenu sadržaja, postoji mogućnost da se dođe do nekonzistentnog stanja između S3 i DynamoDB skladišta. Predstavićemo naš pristup rešavanju ovog problema i objasniti kako sistem garantuje konzistentnost uprkos eventualnim prekidima internet konekcije ili neuspešnim HTTP zahtevima.
+## Tech Stack
+- AWS 
+- Serverless Framework
+- Python
+- Angular
 
-## Rešenje
-1. Dodavanje sadržaja:
-Kada korisnik želi da dodaje sadržaj u sistem, prvo šalje HTTP zahtev ka našoj Lambda funkciji. Lambda funkcija obrađuje ovaj zahtev tako što upisuje metapodatke u DynamoDB tabelu i postavlja odgovarajući flag (`valid`) na `false` za taj unos. Nakon toga, Lambda funkcija generiše S3 pre-signed URL za postupak otpremanja (upload) fajla. Ovaj URL se vraća korisniku putem HTTP odgovora. Kada korisnik otpremi fajl na dobijeni S3 pre-signed URL, Lambda funkcija koja je povezana sa S3 okidačem (trigger) se aktivira. Ako je uspešno otpremljen fajl, menja se vrednost flaga `valid` na `true` za odgovarajući unos u DynamoDB tabeli. Na ovaj način, garantujemo da se samo uspešno otpremljeni sadržaj označava kao validan i samo taj sadržaj se vraća korisniku kada se listaju podaci.
+## Description
+Cloud computing web application designed for storing, managing, and organizing photos, videos and other files. This application offers a user-friendly interface and leverages AWS cloud services with a serverless architecture.
 
-2. Izmena sadržaja:
-Kada korisnik želi da izmeni dodatne informacije o određenom sadržaju, prvo pravimo duplikat unosa u DynamoDB tabeli koji sadrži nove informacije. Zatim, koristimo isti proces kao kod dodavanja sadržaja: generišemo S3 pre-signed URL za postupak izmene (upload) fajla, korisnik otprema fajl na taj URL, a Lambda funkcija okidač pri uspešnom otpremanju menja originalni unos u DynamoDB tabeli sa novim informacijama samo ako je izmena uspešno završena.
+### Key Features
+- User Registration and Authentication: Easily create an account and log in securely with your username and password to access all the application functionalities.
+- Content Upload: Upload various types of content, including photos, videos, audio files, and documents (e.g., PDF, HTML, DOCX). Capture essential information such as filename, file type, file size, creation time, and last modification time. Add custom details such as descriptions and tags to enhance organization and search capabilities.
+- Content Access: View and manage all your uploaded content.
+- Content Modification: Edit the content you own, including the media files and associated information.
+- Content Deletion: Delete your uploaded content effortlessly.
+- Albums: Create personalized photo albums to organize your content. Easily move existing content into albums or add new content directly.
+- Content Sharing: Share your content with other users. Choose whether to share at the content level or the album level. Users with shared access can view and download the content but cannot modify or delete it.
+- Content Download: Download content you have access to
 
-3. Brisanje sadržaja:
-Kada korisnik želi da obriše određeni sadržaj, šalje jedan HTTP zahtev. Nema dodatnih koraka u ovom procesu jer je samo jedan zahtev dovoljan da se izvrši brisanje iz obe S3 i DynamoDB skladišta. Ovo je jednostavniji slučaj jer nema potrebe za sinhronizacijom između dveju baza.
+### System Architecture and Technologies
+The project is built on a serverless architecture utilizing AWS Lambda functions written in Python. The Serverless Framework is used for infrastructure as code, simplifying the deployment and management of AWS services. AWS Cognito handles user authentication and provides a secure login system. Angular is used to provide the frontend of the application.
 
-## Zaključak
-Konzistentnost između S3 i DynamoDB skladišta je od ključne važnosti kako bi naš sistem pravilno funkcionisao. Implementirali smo rešenje koje se fokusira na serversku stranu i garantuje konzistentnost uprkos eventualnim prekidima internet konekcije ili neuspešnim HTTP zahtevima. Naše rešenje uključuje upisivanje metapodataka i korišćenje flaga `valid` u DynamoDB tabeli, kao i korišćenje Lambda funkcija za validaciju i izmene unosa. Na klijentskoj strani, korisnik dobija S3 pre-signed URL koji omogućava bezbedno otpremanje sadržaja. Ovim pristupom obezbeđujemo da samo uspešno otpremljeni sadržaj bude označen kao validan i da se izmene primene samo ako su uspešno završene. Na taj način, rešavamo problem konzistencije i pružamo pouzdano iskustvo korisnicima našeg sistema.
+## How to Run
+1. Clone the repository
+2. Navigate to the project directory
+3. Install dependencies and deploy the application using the Serverless Framework:
+```
+serverless deploy
+```
+4. Navigate to the frontend directory
+5. Install frontend dependencies:
+```
+npm install
+```
+6. Start the frontend development server:
+```
+ng serve
+```
+Open your web browser and visit http://localhost:4200 to access the application.
+
+Note: Before running the serverless deployment command, ensure that you have set up access keys on your PC to interact with AWS services. These access keys will be used during the deployment process to authenticate and authorize the necessary actions.
+The deployment process may take a few minutes to complete. Once it finishes, you will receive information about the deployed resources, including the endpoints to access your application.
